@@ -59,9 +59,15 @@
 
                 </div>
 
-                <button class="border rounded-lg px-5 py-3">
+                <a href="{{ route('anggota.edit', 1) }}"
+                    class="inline-flex items-center gap-2
+           border border-slate-300 rounded-xl
+           px-5 py-3 hover:bg-slate-50">
+
+                    <i data-lucide="pencil" class="w-4 h-4"></i>
+
                     Edit Data
-                </button>
+                </a>
 
             </div>
 

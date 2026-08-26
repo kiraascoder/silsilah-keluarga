@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class Keluarga extends Model
 {
@@ -31,22 +31,6 @@ class Keluarga extends Model
         );
     }
 
-    public function pengguna()
-    {
-        return $this->belongsToMany(
-            User::class,
-            'pengguna_keluarga',
-            'keluarga_id',
-            'pengguna_id'
-        )
-        ->withPivot([
-            'anggota_keluarga_id',
-            'level_akses',
-            'status',
-            'bergabung_pada',
-        ]);
-    }
-
     public function anggota()
     {
         return $this->hasMany(
@@ -60,6 +44,30 @@ class Keluarga extends Model
         return $this->belongsTo(
             AnggotaKeluarga::class,
             'kepala_keluarga_id'
+        );
+    }
+
+    public function pengguna()
+    {
+        return $this->belongsToMany(
+            User::class,
+            'pengguna_keluarga',
+            'keluarga_id',
+            'pengguna_id'
+        )
+            ->withPivot([
+                'anggota_keluarga_id',
+                'level_akses',
+                'status',
+                'bergabung_pada',
+            ]);
+    }
+
+    public function undangan()
+    {
+        return $this->hasMany(
+            UndanganKeluarga::class,
+            'keluarga_id'
         );
     }
 }
