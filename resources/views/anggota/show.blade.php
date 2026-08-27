@@ -38,6 +38,13 @@
                     Edit Data
 
                 </a>
+                
+                <a href="{{ route('relasi.create', $anggota->id) }}"
+                    class="border border-slate-300 rounded-xl px-5 py-3">
+
+                    Tambah Hubungan
+
+                </a>
 
             </div>
 

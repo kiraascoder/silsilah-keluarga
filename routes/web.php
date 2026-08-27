@@ -3,7 +3,7 @@
 use App\Http\Controllers\AnggotaKeluargaController;
 use App\Http\Controllers\KeluargaController;
 use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\RelasiKeluargaController;
 /*
 |--------------------------------------------------------------------------
 | Halaman Publik
@@ -131,12 +131,30 @@ Route::middleware('auth')->group(function () {
             '/anggota-keluarga/{id}',
             [AnggotaKeluargaController::class, 'show']
         )->name('anggota.show');
-        
+
         Route::put(
             '/anggota-keluarga/{id}',
             [AnggotaKeluargaController::class, 'update']
         )
             ->name('anggota.update');
+        Route::get(
+            '/anggota-keluarga/{id}/tambah-relasi',
+            [
+                RelasiKeluargaController::class,
+                'create'
+            ]
+        )
+            ->name('relasi.create');
+
+
+        Route::post(
+            '/relasi-keluarga',
+            [
+                RelasiKeluargaController::class,
+                'store'
+            ]
+        )
+            ->name('relasi.store');
 
 
         /*
