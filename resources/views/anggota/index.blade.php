@@ -201,9 +201,10 @@
                                     <div class="flex justify-end gap-2">
 
                                         <a href="{{ route('anggota.show', $item->id) }}"
-                                            class="border border-slate-300 rounded-lg p-2 hover:bg-slate-50"
-                                            title="Detail">
-                                            <i data-lucide="eye" class="w-4 h-4"></i>
+                                            class="font-semibold hover:text-blue-600">
+
+                                            {{ $item->nama_lengkap }}
+
                                         </a>
 
 

@@ -130,7 +130,13 @@ Route::middleware('auth')->group(function () {
         Route::get(
             '/anggota-keluarga/{id}',
             [AnggotaKeluargaController::class, 'show']
-    )->name('anggota.show');
+        )->name('anggota.show');
+        
+        Route::put(
+            '/anggota-keluarga/{id}',
+            [AnggotaKeluargaController::class, 'update']
+        )
+            ->name('anggota.update');
 
 
         /*
