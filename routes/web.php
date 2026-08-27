@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AnggotaKeluargaController;
 use App\Http\Controllers\KeluargaController;
 use Illuminate\Support\Facades\Route;
 
@@ -90,28 +91,46 @@ Route::middleware('auth')->group(function () {
         |--------------------------------------------------------------------------
         */
 
-        Route::view(
+        Route::get(
             '/anggota-keluarga',
-            'anggota.index'
+            [AnggotaKeluargaController::class, 'index']
         )->name('anggota.index');
 
 
-        Route::view(
+        Route::get(
             '/anggota-keluarga/tambah',
-            'anggota.create'
+            [AnggotaKeluargaController::class, 'create']
         )->name('anggota.create');
 
 
-        Route::view(
+        Route::post(
+            '/anggota-keluarga',
+            [AnggotaKeluargaController::class, 'store']
+        )->name('anggota.store');
+
+
+        Route::get(
             '/anggota-keluarga/{id}/edit',
-            'anggota.edit'
+            [AnggotaKeluargaController::class, 'edit']
         )->name('anggota.edit');
 
 
-        Route::view(
+        Route::put(
             '/anggota-keluarga/{id}',
-            'anggota.show'
-        )->name('anggota.show');
+            [AnggotaKeluargaController::class, 'update']
+        )->name('anggota.update');
+
+
+        Route::patch(
+            '/anggota-keluarga/{id}/nonaktifkan',
+            [AnggotaKeluargaController::class, 'nonaktifkan']
+        )->name('anggota.nonaktifkan');
+
+
+        Route::get(
+            '/anggota-keluarga/{id}',
+            [AnggotaKeluargaController::class, 'show']
+    )->name('anggota.show');
 
 
         /*
