@@ -4,6 +4,7 @@ use App\Http\Controllers\AnggotaKeluargaController;
 use App\Http\Controllers\KeluargaController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\RelasiKeluargaController;
+use App\Http\Controllers\RelasiPasanganController;
 
 /*
 |--------------------------------------------------------------------------
@@ -166,6 +167,22 @@ Route::middleware('auth')->group(function () {
             '/relasi-keluarga/{id}',
             [RelasiKeluargaController::class, 'destroy']
         )->name('relasi.destroy');
+        Route::get(
+            '/anggota-keluarga/{id}/tambah-pasangan',
+            [RelasiPasanganController::class, 'create']
+        )->name('pasangan.create');
+
+
+        Route::post(
+            '/relasi-pasangan',
+            [RelasiPasanganController::class, 'store']
+        )->name('pasangan.store');
+
+
+        Route::delete(
+            '/relasi-pasangan/{id}',
+            [RelasiPasanganController::class, 'destroy']
+        )->name('pasangan.destroy');
 
 
         /*

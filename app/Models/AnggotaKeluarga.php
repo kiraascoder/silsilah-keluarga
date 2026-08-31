@@ -110,4 +110,54 @@ class AnggotaKeluarga extends Model
             'dibuat_oleh'
         );
     }
+    public function pasanganSebagaiPertama()
+    {
+        return $this->hasMany(
+            RelasiPasangan::class,
+            'anggota_pertama_id'
+        );
+    }
+
+
+    public function pasanganSebagaiKedua()
+    {
+        return $this->hasMany(
+            RelasiPasangan::class,
+            'anggota_kedua_id'
+        );
+    }
+    public function getPasanganAttribute()
+    {
+        $relasiPertama = $this->pasanganSebagaiPertama()
+            ->with('anggotaKedua')
+            ->first();
+
+        if ($relasiPertama) {
+            return $relasiPertama->anggotaKedua;
+        }
+
+        $relasiKedua = $this->pasanganSebagaiKedua()
+            ->with('anggotaPertama')
+            ->first();
+
+        return $relasiKedua?->anggotaPertama;
+    }
+    public function relasiPasanganPertama()
+    {
+        return $this->hasMany(
+            RelasiPasangan::class,
+            'anggota_pertama_id'
+        );
+    }
+
+
+    public function relasiPasanganKedua()
+    {
+        return $this->hasMany(
+            RelasiPasangan::class,
+            'anggota_kedua_id'
+        );
+
+    }
+    
 }

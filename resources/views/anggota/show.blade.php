@@ -18,20 +18,21 @@
         </div>
 
 
-        <a href="{{ route('relasi.create', $anggota->id) }}"
+        <a href="{{ route('pasangan.create', $anggota->id) }}"
             class="inline-flex items-center gap-2
-                   bg-blue-600 hover:bg-blue-700
-                   text-white rounded-xl
-                   px-4 py-2 text-sm font-semibold">
+           border border-slate-300
+           rounded-xl px-4 py-2
+           text-sm font-semibold
+           hover:bg-slate-50">
 
-            <i data-lucide="plus" class="w-4 h-4">
-            </i>
+            <i data-lucide="heart" class="w-4 h-4"></i>
 
-            Tambah Hubungan
+            Tambah Pasangan
 
         </a>
 
     </div>
+
 
 
 
@@ -245,7 +246,142 @@
 
 
                 </div>
+                {{-- Pasangan --}}
 
+                {{-- Pasangan --}}
+
+                <div class="mt-6">
+
+                    <div class="flex items-center justify-between mb-3">
+
+                        <h4 class="font-semibold">
+                            Pasangan
+                        </h4>
+
+                        @if (!$anggota->pasangan)
+                            <a href="{{ route('pasangan.create', $anggota->id) }}"
+                                class="inline-flex items-center gap-2
+                       border border-slate-300
+                       rounded-lg px-3 py-2
+                       text-sm font-medium
+                       hover:bg-slate-50">
+
+                                <i data-lucide="plus" class="w-4 h-4">
+                                </i>
+
+                                Tambah
+
+                            </a>
+                        @endif
+
+                    </div>
+
+
+                    @if ($anggota->pasangan)
+                        <div
+                            class="flex items-center gap-3
+                   p-3 rounded-xl
+                   border border-slate-200">
+
+
+                            {{-- Data pasangan --}}
+
+                            <a href="{{ route('anggota.show', $anggota->pasangan->id) }}"
+                                class="flex items-center gap-3 flex-1 min-w-0">
+
+
+                                @if ($anggota->pasangan->foto)
+                                    <img src="{{ asset('storage/' . $anggota->pasangan->foto) }}"
+                                        alt="{{ $anggota->pasangan->nama_lengkap }}"
+                                        class="w-10 h-10 rounded-full object-cover flex-shrink-0">
+                                @else
+                                    <div
+                                        class="w-10 h-10 bg-slate-100
+                               rounded-full
+                               flex items-center justify-center
+                               flex-shrink-0">
+
+                                        <i data-lucide="user" class="w-5 h-5 text-slate-400">
+                                        </i>
+
+                                    </div>
+                                @endif
+
+
+                                <div class="min-w-0">
+
+                                    <p class="font-medium truncate">
+
+                                        {{ $anggota->pasangan->nama_lengkap }}
+
+                                    </p>
+
+                                    <p class="text-xs text-slate-500">
+                                        Pasangan
+                                    </p>
+
+                                </div>
+
+                            </a>
+
+
+                            {{-- Hapus pasangan --}}
+
+                            @php
+
+                                $relasiPasangan = $anggota->pasanganSebagaiPertama
+                                    ->where('anggota_kedua_id', $anggota->pasangan->id)
+                                    ->first();
+
+                                if (!$relasiPasangan) {
+                                    $relasiPasangan = $anggota->pasanganSebagaiKedua
+                                        ->where('anggota_pertama_id', $anggota->pasangan->id)
+                                        ->first();
+                                }
+
+                            @endphp
+
+
+                            @if ($relasiPasangan)
+                                <form method="POST" action="{{ route('pasangan.destroy', $relasiPasangan->id) }}"
+                                    onsubmit="return confirm('Hapus hubungan pasangan ini?')">
+
+                                    @csrf
+
+                                    @method('DELETE')
+
+
+                                    <button type="submit"
+                                        class="p-2 text-red-500
+                               hover:bg-red-50
+                               rounded-lg"
+                                        title="Hapus pasangan">
+
+                                        <i data-lucide="trash-2" class="w-4 h-4">
+                                        </i>
+
+                                    </button>
+
+                                </form>
+                            @endif
+
+                        </div>
+                    @else
+                        <div
+                            class="border border-dashed border-slate-300
+                   rounded-xl p-5 text-center">
+
+                            <i data-lucide="heart" class="w-6 h-6 text-slate-300 mx-auto">
+                            </i>
+
+                            <p class="text-sm text-slate-400 mt-2">
+                                Belum ada data pasangan.
+                            </p>
+
+                        </div>
+                    @endif
+
+                </div>
 
             @empty
 
