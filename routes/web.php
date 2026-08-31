@@ -4,6 +4,7 @@ use App\Http\Controllers\AnggotaKeluargaController;
 use App\Http\Controllers\KeluargaController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\RelasiKeluargaController;
+
 /*
 |--------------------------------------------------------------------------
 | Halaman Publik
@@ -132,6 +133,12 @@ Route::middleware('auth')->group(function () {
             [AnggotaKeluargaController::class, 'show']
         )->name('anggota.show');
 
+
+        Route::get(
+            '/anggota-keluarga/{id}',
+            [AnggotaKeluargaController::class, 'show']
+        )->name('anggota.show');
+
         Route::put(
             '/anggota-keluarga/{id}',
             [AnggotaKeluargaController::class, 'update']
@@ -155,6 +162,10 @@ Route::middleware('auth')->group(function () {
             ]
         )
             ->name('relasi.store');
+        Route::delete(
+            '/relasi-keluarga/{id}',
+            [RelasiKeluargaController::class, 'destroy']
+        )->name('relasi.destroy');
 
 
         /*

@@ -1,282 +1,273 @@
-<x-app-layout>
+{{-- Hubungan Keluarga --}}
 
-    <div class="max-w-6xl">
+<div class="bg-white border border-slate-200 rounded-2xl p-7 mt-6">
 
-        {{-- Header --}}
+    {{-- Header --}}
+    <div class="flex items-center justify-between mb-6">
 
-        <div class="mb-7">
+        <div>
 
-            <a href="{{ route('anggota.index') }}" class="text-sm text-blue-600">
+            <h3 class="text-lg font-bold">
+                Hubungan Keluarga
+            </h3>
 
-                ← Kembali ke Anggota
-
-            </a>
-
-
-            <div class="flex justify-between items-start mt-5">
-
-                <div>
-
-                    <h1 class="text-3xl font-bold">
-                        Detail Anggota
-                    </h1>
-
-                    <p class="text-slate-500 mt-1">
-                        Informasi lengkap anggota keluarga.
-                    </p>
-
-                </div>
-
-
-                <a href="{{ route('anggota.edit', $anggota->id) }}"
-                    class="inline-flex items-center gap-2
-                       border border-slate-300
-                       rounded-xl px-5 py-3">
-
-                    <i data-lucide="pencil" class="w-4 h-4"></i>
-
-                    Edit Data
-
-                </a>
-                
-                <a href="{{ route('relasi.create', $anggota->id) }}"
-                    class="border border-slate-300 rounded-xl px-5 py-3">
-
-                    Tambah Hubungan
-
-                </a>
-
-            </div>
+            <p class="text-sm text-slate-500 mt-1">
+                Hubungan anggota dalam silsilah keluarga.
+            </p>
 
         </div>
 
 
+        <a href="{{ route('relasi.create', $anggota->id) }}"
+            class="inline-flex items-center gap-2
+                   bg-blue-600 hover:bg-blue-700
+                   text-white rounded-xl
+                   px-4 py-2 text-sm font-semibold">
 
-        {{-- Profil Utama --}}
+            <i data-lucide="plus" class="w-4 h-4">
+            </i>
 
-        <div class="bg-white border border-slate-200
-               rounded-2xl p-7 mb-6">
+            Tambah Hubungan
 
+        </a>
 
-            <div class="flex items-center gap-6">
-
-
-                @if ($anggota->foto)
-                    <img src="{{ asset('storage/' . $anggota->foto) }}" class="w-28 h-28 rounded-full object-cover">
-                @else
-                    <div
-                        class="w-28 h-28 bg-slate-100
-                           rounded-full
-                           flex items-center justify-center">
-
-                        <i data-lucide="user" class="w-12 h-12 text-slate-400">
-                        </i>
-
-                    </div>
-                @endif
+    </div>
 
 
 
-                <div>
+    {{-- Isi Hubungan --}}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
 
-                    <div class="flex items-center gap-3">
+        {{-- ===================================================== --}}
+        {{-- ORANG TUA --}}
+        {{-- ===================================================== --}}
+
+        <div>
+
+            <h4 class="font-semibold mb-3">
+                Orang Tua
+            </h4>
 
 
-                        <h2 class="text-3xl font-bold">
+            @forelse($anggota->orangTua as $orangTua)
+                <div
+                    class="flex items-center gap-3
+                           p-3 rounded-xl
+                           border border-slate-200
+                           mb-2">
 
-                            {{ $anggota->nama_lengkap }}
 
-                        </h2>
+                    {{-- Data orang tua --}}
+
+                    <a href="{{ route('anggota.show', $orangTua->id) }}" class="flex items-center gap-3 flex-1 min-w-0">
 
 
-                        @if ($anggota->status_data == 'aktif')
-                            <span
-                                class="bg-emerald-50
-                               text-emerald-600
-                               px-3 py-1 rounded-full text-sm">
+                        {{-- Foto --}}
 
-                                Aktif
+                        @if ($orangTua->foto)
+                            <img src="{{ asset('storage/' . $orangTua->foto) }}" alt="{{ $orangTua->nama_lengkap }}"
+                                class="w-10 h-10 rounded-full object-cover flex-shrink-0">
+                        @else
+                            <div
+                                class="w-10 h-10 bg-slate-100
+                                       rounded-full
+                                       flex items-center justify-center
+                                       flex-shrink-0">
 
-                            </span>
+                                <i data-lucide="user" class="w-5 h-5 text-slate-400">
+                                </i>
+
+                            </div>
                         @endif
 
 
-                    </div>
+                        {{-- Informasi --}}
+
+                        <div class="min-w-0">
+
+                            <p class="font-medium truncate">
+
+                                {{ $orangTua->nama_lengkap }}
+
+                            </p>
 
 
-                    @if ($anggota->nama_panggilan)
-                        <p class="text-slate-500 mt-2">
+                            <p class="text-xs text-slate-500">
 
-                            {{ $anggota->nama_panggilan }}
+                                {{ ucfirst($orangTua->pivot->jenis_hubungan) }}
 
-                        </p>
-                    @endif
+                            </p>
+
+                        </div>
+
+                    </a>
+
+
+
+                    {{-- Hapus hubungan --}}
+
+                    <form method="POST" action="{{ route('relasi.destroy', $orangTua->pivot->id) }}"
+                        onsubmit="return confirm('Hapus hubungan dengan {{ $orangTua->nama_lengkap }}?')">
+
+                        @csrf
+
+                        @method('DELETE')
+
+
+                        <button type="submit"
+                            class="p-2 text-red-500
+                                   hover:bg-red-50
+                                   rounded-lg"
+                            title="Hapus hubungan">
+
+                            <i data-lucide="trash-2" class="w-4 h-4">
+                            </i>
+
+                        </button>
+
+                    </form>
 
 
                 </div>
 
 
-            </div>
+            @empty
 
+                <div
+                    class="border border-dashed border-slate-300
+                           rounded-xl p-5 text-center">
+
+                    <i data-lucide="users" class="w-6 h-6 text-slate-300 mx-auto">
+                    </i>
+
+                    <p class="text-sm text-slate-400 mt-2">
+
+                        Belum ada data orang tua.
+
+                    </p>
+
+                </div>
+            @endforelse
 
         </div>
 
 
 
+        {{-- ===================================================== --}}
+        {{-- ANAK --}}
+        {{-- ===================================================== --}}
 
-        {{-- Informasi Pribadi --}}
+        <div>
 
-
-        <div class="bg-white border border-slate-200
-               rounded-2xl p-7">
-
-
-            <h3 class="font-bold text-lg mb-6">
-
-                Informasi Pribadi
-
-            </h3>
+            <h4 class="font-semibold mb-3">
+                Anak
+            </h4>
 
 
+            @forelse($anggota->anak as $anak)
+                <div
+                    class="flex items-center gap-3
+                           p-3 rounded-xl
+                           border border-slate-200
+                           mb-2">
 
-            <div class="grid grid-cols-2 gap-6">
+
+                    {{-- Data anak --}}
+
+                    <a href="{{ route('anggota.show', $anak->id) }}" class="flex items-center gap-3 flex-1 min-w-0">
 
 
-                <div>
+                        {{-- Foto --}}
 
-                    <p class="text-sm text-slate-500">
-                        Jenis Kelamin
-                    </p>
+                        @if ($anak->foto)
+                            <img src="{{ asset('storage/' . $anak->foto) }}" alt="{{ $anak->nama_lengkap }}"
+                                class="w-10 h-10 rounded-full object-cover flex-shrink-0">
+                        @else
+                            <div
+                                class="w-10 h-10 bg-slate-100
+                                       rounded-full
+                                       flex items-center justify-center
+                                       flex-shrink-0">
 
-                    <p class="font-medium">
+                                <i data-lucide="user" class="w-5 h-5 text-slate-400">
+                                </i>
 
-                        {{ ucfirst($anggota->jenis_kelamin) }}
+                            </div>
+                        @endif
 
-                    </p>
+
+                        {{-- Informasi --}}
+
+                        <div class="min-w-0">
+
+                            <p class="font-medium truncate">
+
+                                {{ $anak->nama_lengkap }}
+
+                            </p>
+
+
+                            <p class="text-xs text-slate-500">
+
+                                Anak
+
+                            </p>
+
+                        </div>
+
+                    </a>
+
+
+
+                    {{-- Hapus hubungan --}}
+
+                    <form method="POST" action="{{ route('relasi.destroy', $anak->pivot->id) }}"
+                        onsubmit="return confirm('Hapus hubungan dengan {{ $anak->nama_lengkap }}?')">
+
+                        @csrf
+
+                        @method('DELETE')
+
+
+                        <button type="submit"
+                            class="p-2 text-red-500
+                                   hover:bg-red-50
+                                   rounded-lg"
+                            title="Hapus hubungan">
+
+                            <i data-lucide="trash-2" class="w-4 h-4">
+                            </i>
+
+                        </button>
+
+                    </form>
+
 
                 </div>
 
 
+            @empty
 
-                <div>
+                <div
+                    class="border border-dashed border-slate-300
+                           rounded-xl p-5 text-center">
 
-                    <p class="text-sm text-slate-500">
-                        Generasi
-                    </p>
+                    <i data-lucide="users" class="w-6 h-6 text-slate-300 mx-auto">
+                    </i>
 
-                    <p class="font-medium">
+                    <p class="text-sm text-slate-400 mt-2">
 
-                        {{ $anggota->generasi ? 'Generasi ' . $anggota->generasi : '-' }}
-
-                    </p>
-
-                </div>
-
-
-
-
-                <div>
-
-                    <p class="text-sm text-slate-500">
-                        Tempat Lahir
-                    </p>
-
-                    <p class="font-medium">
-
-                        {{ $anggota->tempat_lahir ?? '-' }}
+                        Belum ada data anak.
 
                     </p>
 
                 </div>
-
-
-
-                <div>
-
-                    <p class="text-sm text-slate-500">
-                        Tanggal Lahir
-                    </p>
-
-                    <p class="font-medium">
-
-                        {{ $anggota->tanggal_lahir ? $anggota->tanggal_lahir->format('d F Y') : '-' }}
-
-                    </p>
-
-                </div>
-
-
-
-                <div>
-
-                    <p class="text-sm text-slate-500">
-                        Golongan Darah
-                    </p>
-
-                    <p class="font-medium">
-
-                        {{ $anggota->golongan_darah ?? '-' }}
-
-                    </p>
-
-                </div>
-
-
-
-                <div>
-
-                    <p class="text-sm text-slate-500">
-                        Agama
-                    </p>
-
-                    <p class="font-medium">
-
-                        {{ $anggota->agama ?? '-' }}
-
-                    </p>
-
-                </div>
-
-
-                <div>
-
-                    <p class="text-sm text-slate-500">
-                        Pekerjaan
-                    </p>
-
-                    <p class="font-medium">
-
-                        {{ $anggota->pekerjaan ?? '-' }}
-
-                    </p>
-
-                </div>
-
-
-
-                <div>
-
-                    <p class="text-sm text-slate-500">
-                        Telepon
-                    </p>
-
-                    <p class="font-medium">
-
-                        {{ $anggota->telepon ?? '-' }}
-
-                    </p>
-
-                </div>
-
-
-            </div>
-
+            @endforelse
 
         </div>
 
 
     </div>
 
-
-</x-app-layout>
+</div>

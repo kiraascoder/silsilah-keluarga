@@ -39,6 +39,13 @@ class AnggotaKeluarga extends Model
         'tanggal_meninggal' => 'date',
     ];
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | Keluarga
+    |--------------------------------------------------------------------------
+    */
+
     public function keluarga()
     {
         return $this->belongsTo(
@@ -47,47 +54,12 @@ class AnggotaKeluarga extends Model
         );
     }
 
-    public function pengguna()
-    {
-        return $this->belongsTo(
-            User::class,
-            'pengguna_id'
-        );
-    }
 
-    public function dokumen()
-    {
-        return $this->hasMany(
-            DokumenAnggota::class,
-            'anggota_keluarga_id'
-        );
-    }
-
-    public function relasiSebagaiOrangTua()
-    {
-        return $this->hasMany(
-            RelasiOrangTuaAnak::class,
-            'orang_tua_id'
-        );
-    }
-
-    public function relasiSebagaiAnak()
-    {
-        return $this->hasMany(
-            RelasiOrangTuaAnak::class,
-            'anak_id'
-        );
-    }
-
-    public function anak()
-    {
-        return $this->belongsToMany(
-            AnggotaKeluarga::class,
-            'relasi_orang_tua_anak',
-            'orang_tua_id',
-            'anak_id'
-        );
-    }
+    /*
+    |--------------------------------------------------------------------------
+    | Orang Tua
+    |--------------------------------------------------------------------------
+    */
 
     public function orangTua()
     {
@@ -96,6 +68,46 @@ class AnggotaKeluarga extends Model
             'relasi_orang_tua_anak',
             'anak_id',
             'orang_tua_id'
+        )
+            ->withPivot([
+                'id',
+                'jenis_hubungan',
+            ]);
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Anak
+    |--------------------------------------------------------------------------
+    */
+
+    public function anak()
+    {
+        return $this->belongsToMany(
+            AnggotaKeluarga::class,
+            'relasi_orang_tua_anak',
+            'orang_tua_id',
+            'anak_id'
+        )
+            ->withPivot([
+                'id',
+                'jenis_hubungan',
+            ]);
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Pembuat Data
+    |--------------------------------------------------------------------------
+    */
+
+    public function pembuat()
+    {
+        return $this->belongsTo(
+            User::class,
+            'dibuat_oleh'
         );
     }
 }
