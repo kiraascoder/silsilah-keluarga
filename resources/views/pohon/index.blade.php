@@ -1,107 +1,164 @@
-@extends('layouts.app')
+<x-app-layout>
 
-@section('title', 'Pohon Silsilah')
+    <div class="max-w-7xl">
 
-@section('content')
+        {{-- Header --}}
 
-    <div>
+        <div class="mb-7">
 
-        <div class="flex justify-between items-end mb-6">
+            <h1 class="text-3xl font-bold">
+                Pohon Silsilah
+            </h1>
 
-            <div>
-
-                <h2 class="text-3xl font-bold">
-                    Pohon Silsilah
-                </h2>
-
-                <p class="text-slate-500">
-                    Lihat struktur dan hubungan keluarga Anda dalam bentuk pohon silsilah.
-                </p>
-
-            </div>
-
-            <div class="flex gap-3">
-
-                <button class="border px-4 py-3 rounded-lg">
-                    Filter
-                </button>
-
-                <button class="border px-4 py-3 rounded-lg">
-                    Export
-                </button>
-
-                <button class="bg-blue-600 text-white px-4 py-3 rounded-lg">
-                    Cetak
-                </button>
-
-            </div>
+            <p class="text-slate-500 mt-1">
+                Struktur hubungan anggota keluarga berdasarkan data silsilah.
+            </p>
 
         </div>
 
-        <div class="bg-white border rounded-2xl p-8 min-h-[600px]">
 
-            <div class="flex justify-center">
+        {{-- Informasi --}}
 
-                <div class="text-center">
+        @if (config('app.debug'))
+            <div class="bg-slate-900 text-slate-100
+               rounded-2xl p-6 mb-6 overflow-auto">
 
-                    <div class="flex justify-center gap-8">
+                <h2 class="font-semibold mb-4">
+                    Struktur Data Silsilah
+                </h2>
 
-                        <div class="border rounded-xl p-5 w-52">
-                            <strong>H. Abdul Rahman</strong>
-                            <p class="text-sm">1945 - 2018</p>
-                            <span class="text-xs">Kakek</span>
-                        </div>
+                <pre class="text-xs leading-relaxed">{{ print_r($pohon, true) }}</pre>
 
-                        <div class="border rounded-xl p-5 w-52">
-                            <strong>Hj. Siti Aisyah</strong>
-                            <p class="text-sm">1948 - 2020</p>
-                            <span class="text-xs">Nenek</span>
-                        </div>
+            </div>
+        @endif
 
-                    </div>
 
-                    <div class="w-px h-12 bg-slate-400 mx-auto"></div>
 
-                    <div class="flex justify-center gap-5">
+        {{-- Pohon --}}
 
-                        <div class="border rounded-xl p-5">
-                            Budi Rahman
-                        </div>
+        @if ($anggota->count())
 
-                        <div class="border rounded-xl p-5">
-                            Rina Rahman
-                        </div>
+            <div class="bg-slate-50 border border-slate-200
+                   rounded-2xl">
 
-                        <div class="border-2 border-blue-500 rounded-xl p-5">
-                            Andi Syamsul
-                        </div>
+                <div class="family-tree-wrapper">
 
-                    </div>
+                    <div class="family-tree">
 
-                    <div class="w-px h-12 bg-slate-400 mx-auto"></div>
 
-                    <div class="flex justify-center gap-5">
+                        @foreach ($generasi as $nomorGenerasi => $daftarAnggota)
+                            {{-- Label generasi --}}
 
-                        <div class="border rounded-xl p-5">
-                            Muhammad Fadli
-                        </div>
+                            <div class="family-tree-generation-label">
 
-                        <div class="border rounded-xl p-5">
-                            Aisyah Putri
-                        </div>
+                                @if ($nomorGenerasi)
+                                    Generasi {{ $nomorGenerasi }}
+                                @else
+                                    Generasi Belum Ditentukan
+                                @endif
 
-                        <div class="border rounded-xl p-5">
-                            Fahri Syamsul
-                        </div>
+                            </div>
+
+
+
+                            {{-- Anggota generasi --}}
+
+                            <div class="family-tree-generation">
+
+
+                                @foreach ($daftarAnggota as $item)
+                                    <div class="family-tree-person">
+
+
+                                        <a href="{{ route('anggota.show', $item->id) }}" class="block">
+
+
+                                            <div class="family-tree-card">
+
+
+                                                {{-- Foto --}}
+
+                                                @if ($item->foto)
+                                                    <img src="{{ asset('storage/' . $item->foto) }}"
+                                                        alt="{{ $item->nama_lengkap }}" class="family-tree-photo">
+                                                @else
+                                                    <div class="family-tree-photo-placeholder">
+
+                                                        <i data-lucide="user" class="w-7 h-7 text-slate-400">
+                                                        </i>
+
+                                                    </div>
+                                                @endif
+
+
+
+                                                {{-- Nama --}}
+
+                                                <div class="family-tree-name">
+
+                                                    {{ $item->nama_lengkap }}
+
+                                                </div>
+
+
+
+                                                {{-- Jenis kelamin --}}
+
+                                                @if ($item->jenis_kelamin)
+                                                    <div class="family-tree-gender">
+
+                                                        {{ ucfirst($item->jenis_kelamin) }}
+
+                                                    </div>
+                                                @endif
+
+
+                                            </div>
+
+                                        </a>
+
+
+                                    </div>
+                                @endforeach
+
+
+                            </div>
+                        @endforeach
+
 
                     </div>
 
                 </div>
 
             </div>
+        @else
+            <div class="bg-white border border-slate-200
+                   rounded-2xl p-12 text-center">
 
-        </div>
+                <i data-lucide="git-branch" class="w-10 h-10
+                       text-slate-300 mx-auto">
+                </i>
+
+
+                <h3 class="font-semibold mt-4">
+
+                    Belum Ada Data Silsilah
+
+                </h3>
+
+
+                <p class="text-sm text-slate-500 mt-1">
+
+                    Tambahkan anggota dan hubungan keluarga
+                    terlebih dahulu.
+
+                </p>
+
+            </div>
+
+
+        @endif
 
     </div>
 
-@endsection
+</x-app-layout>
