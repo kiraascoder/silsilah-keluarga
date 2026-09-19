@@ -1,164 +1,262 @@
-<x-app-layout>
+@extends('layouts.member')
 
-    <div class="max-w-7xl">
+@section('title', 'Pohon Silsilah')
 
-        {{-- Header --}}
+@section('content')
 
-        <div class="mb-7">
+<div class="max-w-7xl mx-auto">
 
-            <h1 class="text-3xl font-bold">
-                Pohon Silsilah
-            </h1>
+    {{-- Header --}}
 
-            <p class="text-slate-500 mt-1">
-                Struktur hubungan anggota keluarga berdasarkan data silsilah.
+    <div class="mb-8">
+
+        <h1 class="text-3xl font-bold text-slate-900">
+            Pohon Silsilah
+        </h1>
+
+        <p class="text-slate-500 mt-1">
+            Lihat hubungan anggota dalam keluarga
+            {{ $keluargaAktif->nama_keluarga }}.
+        </p>
+
+    </div>
+
+
+    {{-- Anggota utama --}}
+
+    @if($anggotaUtama)
+
+        <div
+            class="bg-white
+                   border border-slate-200
+                   rounded-2xl
+                   p-6
+                   mb-6"
+        >
+
+            <p
+                class="text-xs
+                       uppercase
+                       tracking-wide
+                       text-slate-400
+                       mb-2"
+            >
+                Kepala / Titik Utama
+            </p>
+
+
+            <div class="flex items-center gap-4">
+
+                @if($anggotaUtama->foto)
+
+                    <img
+                        src="{{ asset('storage/' . $anggotaUtama->foto) }}"
+                        class="w-16 h-16 rounded-full object-cover"
+                        alt="{{ $anggotaUtama->nama_lengkap }}"
+                    >
+
+                @else
+
+                    <div
+                        class="w-16 h-16
+                               rounded-full
+                               bg-slate-100
+                               flex items-center
+                               justify-center"
+                    >
+
+                        <i
+                            data-lucide="user"
+                            class="w-7 h-7 text-slate-400"
+                        ></i>
+
+                    </div>
+
+                @endif
+
+
+                <div>
+
+                    <h2 class="text-lg font-bold">
+                        {{ $anggotaUtama->nama_lengkap }}
+                    </h2>
+
+                    <p class="text-sm text-slate-500">
+                        Generasi {{ $anggotaUtama->generasi }}
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    @endif
+
+
+    {{-- Daftar struktur --}}
+
+    <div
+        class="bg-white
+               border border-slate-200
+               rounded-2xl
+               overflow-hidden"
+    >
+
+        <div class="p-6 border-b border-slate-200">
+
+            <h2 class="font-bold text-lg">
+                Struktur Keluarga
+            </h2>
+
+            <p class="text-sm text-slate-500 mt-1">
+                {{ $anggota->count() }}
+                anggota terdaftar.
             </p>
 
         </div>
 
 
-        {{-- Informasi --}}
+        <div class="divide-y divide-slate-100">
 
-        @if (config('app.debug'))
-            <div class="bg-slate-900 text-slate-100
-               rounded-2xl p-6 mb-6 overflow-auto">
+            @forelse($anggota as $item)
 
-                <h2 class="font-semibold mb-4">
-                    Struktur Data Silsilah
-                </h2>
+                <div
+                    class="p-5
+                           flex
+                           items-center
+                           justify-between
+                           hover:bg-slate-50"
+                >
 
-                <pre class="text-xs leading-relaxed">{{ print_r($pohon, true) }}</pre>
+                    <div class="flex items-center gap-4">
 
-            </div>
-        @endif
+                        @if($item->foto)
 
+                            <img
+                                src="{{ asset('storage/' . $item->foto) }}"
+                                class="w-12 h-12
+                                       rounded-full
+                                       object-cover"
+                                alt="{{ $item->nama_lengkap }}"
+                            >
 
+                        @else
 
-        {{-- Pohon --}}
+                            <div
+                                class="w-12 h-12
+                                       rounded-full
+                                       bg-slate-100
+                                       flex items-center
+                                       justify-center"
+                            >
 
-        @if ($anggota->count())
-
-            <div class="bg-slate-50 border border-slate-200
-                   rounded-2xl">
-
-                <div class="family-tree-wrapper">
-
-                    <div class="family-tree">
-
-
-                        @foreach ($generasi as $nomorGenerasi => $daftarAnggota)
-                            {{-- Label generasi --}}
-
-                            <div class="family-tree-generation-label">
-
-                                @if ($nomorGenerasi)
-                                    Generasi {{ $nomorGenerasi }}
-                                @else
-                                    Generasi Belum Ditentukan
-                                @endif
-
-                            </div>
-
-
-
-                            {{-- Anggota generasi --}}
-
-                            <div class="family-tree-generation">
-
-
-                                @foreach ($daftarAnggota as $item)
-                                    <div class="family-tree-person">
-
-
-                                        <a href="{{ route('anggota.show', $item->id) }}" class="block">
-
-
-                                            <div class="family-tree-card">
-
-
-                                                {{-- Foto --}}
-
-                                                @if ($item->foto)
-                                                    <img src="{{ asset('storage/' . $item->foto) }}"
-                                                        alt="{{ $item->nama_lengkap }}" class="family-tree-photo">
-                                                @else
-                                                    <div class="family-tree-photo-placeholder">
-
-                                                        <i data-lucide="user" class="w-7 h-7 text-slate-400">
-                                                        </i>
-
-                                                    </div>
-                                                @endif
-
-
-
-                                                {{-- Nama --}}
-
-                                                <div class="family-tree-name">
-
-                                                    {{ $item->nama_lengkap }}
-
-                                                </div>
-
-
-
-                                                {{-- Jenis kelamin --}}
-
-                                                @if ($item->jenis_kelamin)
-                                                    <div class="family-tree-gender">
-
-                                                        {{ ucfirst($item->jenis_kelamin) }}
-
-                                                    </div>
-                                                @endif
-
-
-                                            </div>
-
-                                        </a>
-
-
-                                    </div>
-                                @endforeach
-
+                                <i
+                                    data-lucide="user"
+                                    class="w-5 h-5
+                                           text-slate-400"
+                                ></i>
 
                             </div>
-                        @endforeach
 
+                        @endif
+
+
+                        <div>
+
+                            <a
+                                href="{{ route('anggota.show', $item->id) }}"
+                                class="font-semibold
+                                       text-slate-900
+                                       hover:text-blue-600"
+                            >
+                                {{ $item->nama_lengkap }}
+                            </a>
+
+                            <p class="text-sm text-slate-500">
+                                Generasi {{ $item->generasi }}
+                                ·
+                                {{ ucfirst($item->jenis_kelamin) }}
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="text-right">
+
+                        <p class="text-xs text-slate-400">
+                            Orang tua
+                        </p>
+
+                        <p class="text-sm font-medium">
+                            {{ $item->orangTua->count() }}
+                        </p>
+
+                    </div>
+
+
+                    <div class="text-right">
+
+                        <p class="text-xs text-slate-400">
+                            Anak
+                        </p>
+
+                        <p class="text-sm font-medium">
+                            {{ $item->anak->count() }}
+                        </p>
+
+                    </div>
+
+
+                    <div class="text-right">
+
+                        <p class="text-xs text-slate-400">
+                            Pasangan
+                        </p>
+
+                        <p class="text-sm font-medium">
+                            {{ $item->pasangan?->nama_lengkap ?? '-' }}
+                        </p>
 
                     </div>
 
                 </div>
 
-            </div>
-        @else
-            <div class="bg-white border border-slate-200
-                   rounded-2xl p-12 text-center">
+            @empty
 
-                <i data-lucide="git-branch" class="w-10 h-10
-                       text-slate-300 mx-auto">
-                </i>
+                <div class="p-12 text-center">
 
+                    <i
+                        data-lucide="users"
+                        class="w-10 h-10
+                               text-slate-300
+                               mx-auto
+                               mb-3"
+                    ></i>
 
-                <h3 class="font-semibold mt-4">
+                    <p class="font-medium text-slate-600">
+                        Belum ada anggota keluarga.
+                    </p>
 
-                    Belum Ada Data Silsilah
+                    <p class="text-sm text-slate-400 mt-1">
+                        Tambahkan anggota terlebih dahulu
+                        untuk membangun silsilah.
+                    </p>
 
-                </h3>
+                </div>
 
+            @endforelse
 
-                <p class="text-sm text-slate-500 mt-1">
-
-                    Tambahkan anggota dan hubungan keluarga
-                    terlebih dahulu.
-
-                </p>
-
-            </div>
-
-
-        @endif
+        </div>
 
     </div>
 
-</x-app-layout>
+</div>
+
+<script>
+    lucide.createIcons();
+</script>
+
+@endsection
