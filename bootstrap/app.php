@@ -15,8 +15,9 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
 
         $middleware->alias([
-            'keluarga.aktif'
-            => \App\Http\Middleware\PastikanKeluargaDipilih::class,
+            'keluarga.aktif' => \App\Http\Middleware\KeluargaAktif::class,
+
+            'hak.akses' => \App\Http\Middleware\HakAksesKeluarga::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -35,4 +35,32 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+    public function keluarga()
+    {
+        return $this->belongsToMany(
+            Keluarga::class,
+            'pengguna_keluarga',
+            'user_id',
+            'keluarga_id'
+        )->withPivot([
+            'level_akses',
+            'status',
+        ])->withTimestamps();
+    }
+    public function undanganDibuat()
+    {
+        return $this->hasMany(
+            UndanganKeluarga::class,
+            'diundang_oleh'
+        );
+    }
+
+
+    public function undanganDiterima()
+    {
+        return $this->hasMany(
+            UndanganKeluarga::class,
+            'diterima_oleh'
+        );
+    }
 }

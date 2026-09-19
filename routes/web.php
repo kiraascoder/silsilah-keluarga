@@ -2,9 +2,13 @@
 
 use App\Http\Controllers\AnggotaKeluargaController;
 use App\Http\Controllers\KeluargaController;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\RelasiKeluargaController;
+use App\Http\Controllers\PohonSilsilahController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RelasiOrangTuaAnakController;
 use App\Http\Controllers\RelasiPasanganController;
+use App\Http\Controllers\UndanganKeluargaController;
+use Illuminate\Support\Facades\Route;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -14,7 +18,7 @@ use App\Http\Controllers\RelasiPasanganController;
 
 Route::get('/', function () {
     return view('welcome');
-})->name('beranda');
+})->name('welcome');
 
 
 /*
@@ -27,7 +31,7 @@ Route::middleware('auth')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Pemilihan Rumpun Keluarga
+    | Keluarga
     |--------------------------------------------------------------------------
     */
 
@@ -57,7 +61,31 @@ Route::middleware('auth')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Halaman yang membutuhkan keluarga aktif
+    | Profile
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get(
+        '/profile',
+        [ProfileController::class, 'edit']
+    )->name('profile.edit');
+
+
+    Route::patch(
+        '/profile',
+        [ProfileController::class, 'update']
+    )->name('profile.update');
+
+
+    Route::delete(
+        '/profile',
+        [ProfileController::class, 'destroy']
+    )->name('profile.destroy');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Keluarga Aktif
     |--------------------------------------------------------------------------
     */
 
@@ -69,9 +97,11 @@ Route::middleware('auth')->group(function () {
         |--------------------------------------------------------------------------
         */
 
-        Route::view(
+        Route::get(
             '/dashboard',
-            'dashboard'
+            function () {
+                return view('dashboard');
+            }
         )->name('dashboard');
 
 
@@ -81,9 +111,9 @@ Route::middleware('auth')->group(function () {
         |--------------------------------------------------------------------------
         */
 
-        Route::view(
+        Route::get(
             '/pohon-silsilah',
-            'pohon.index'
+            [PohonSilsilahController::class, 'index']
         )->name('pohon.index');
 
 
@@ -112,6 +142,12 @@ Route::middleware('auth')->group(function () {
 
 
         Route::get(
+            '/anggota-keluarga/{id}',
+            [AnggotaKeluargaController::class, 'show']
+        )->name('anggota.show');
+
+
+        Route::get(
             '/anggota-keluarga/{id}/edit',
             [AnggotaKeluargaController::class, 'edit']
         )->name('anggota.edit');
@@ -123,50 +159,42 @@ Route::middleware('auth')->group(function () {
         )->name('anggota.update');
 
 
-        Route::patch(
-            '/anggota-keluarga/{id}/nonaktifkan',
-            [AnggotaKeluargaController::class, 'nonaktifkan']
-        )->name('anggota.nonaktifkan');
-
-
-        Route::get(
+        Route::delete(
             '/anggota-keluarga/{id}',
-            [AnggotaKeluargaController::class, 'show']
-        )->name('anggota.show');
+            [AnggotaKeluargaController::class, 'destroy']
+        )->name('anggota.destroy');
 
 
-        Route::get(
-            '/anggota-keluarga/{id}',
-            [AnggotaKeluargaController::class, 'show']
-        )->name('anggota.show');
+        /*
+        |--------------------------------------------------------------------------
+        | Relasi Orang Tua - Anak
+        |--------------------------------------------------------------------------
+        */
 
-        Route::put(
-            '/anggota-keluarga/{id}',
-            [AnggotaKeluargaController::class, 'update']
-        )
-            ->name('anggota.update');
         Route::get(
             '/anggota-keluarga/{id}/tambah-relasi',
-            [
-                RelasiKeluargaController::class,
-                'create'
-            ]
-        )
-            ->name('relasi.create');
+            [RelasiOrangTuaAnakController::class, 'create']
+        )->name('relasi.create');
 
 
         Route::post(
-            '/relasi-keluarga',
-            [
-                RelasiKeluargaController::class,
-                'store'
-            ]
-        )
-            ->name('relasi.store');
+            '/relasi-orang-tua-anak',
+            [RelasiOrangTuaAnakController::class, 'store']
+        )->name('relasi.store');
+
+
         Route::delete(
-            '/relasi-keluarga/{id}',
-            [RelasiKeluargaController::class, 'destroy']
+            '/relasi-orang-tua-anak/{id}',
+            [RelasiOrangTuaAnakController::class, 'destroy']
         )->name('relasi.destroy');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Relasi Pasangan
+        |--------------------------------------------------------------------------
+        */
+
         Route::get(
             '/anggota-keluarga/{id}/tambah-pasangan',
             [RelasiPasanganController::class, 'create']
@@ -183,37 +211,13 @@ Route::middleware('auth')->group(function () {
             '/relasi-pasangan/{id}',
             [RelasiPasanganController::class, 'destroy']
         )->name('pasangan.destroy');
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Profil
-        |--------------------------------------------------------------------------
-        */
-
-        Route::view(
-            '/profil',
-            'profil.index'
-        )->name('profil.index');
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Pengaturan
-        |--------------------------------------------------------------------------
-        */
-
-        Route::view(
-            '/pengaturan',
-            'pengaturan.index'
-        )->name('pengaturan.index');
     });
 });
 
 
 /*
 |--------------------------------------------------------------------------
-| Authentication Breeze
+| Authentication
 |--------------------------------------------------------------------------
 */
 

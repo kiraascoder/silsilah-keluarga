@@ -10,17 +10,15 @@ class PohonSilsilahController extends Controller
     {
         $keluargaId = session('keluarga_id');
 
-        /*
-        |--------------------------------------------------------------------------
-        | Ambil anggota keluarga
-        |--------------------------------------------------------------------------
-        */
 
         $anggota = AnggotaKeluarga::where(
             'keluarga_id',
             $keluargaId
         )
-            ->where('status_data', 'aktif')
+            ->where(
+                'status_data',
+                'aktif'
+            )
             ->with([
                 'orangTua',
                 'anak',
@@ -32,26 +30,22 @@ class PohonSilsilahController extends Controller
             ->get();
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Buat struktur pohon
-        |--------------------------------------------------------------------------
-        */
-
-        $pohon = $this->bangunStrukturPohon($anggota);
+        $pohon =
+            $this->bangunStrukturPohon(
+                $anggota
+            );
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Kelompok berdasarkan generasi
-        |--------------------------------------------------------------------------
-        */
+        $generasi =
+            $anggota->groupBy(
+                function ($item) {
+                    return $item->generasi ?? 0;
+                }
+            );
 
-        $generasi = $anggota->groupBy(
-            function ($item) {
-                return $item->generasi ?? 0;
-            }
-        );
+
+        $root =
+            $this->cariRoot($pohon);
 
 
         return view(
@@ -59,7 +53,8 @@ class PohonSilsilahController extends Controller
             compact(
                 'anggota',
                 'generasi',
-                'pohon'
+                'pohon',
+                'root'
             )
         );
     }

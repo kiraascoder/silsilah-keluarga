@@ -73,20 +73,39 @@ class KeluargaController extends Controller
 
     public function pilihAktif(Keluarga $keluarga)
     {
-        $punyaAkses = PenggunaKeluarga::where(
-            'keluarga_id',
-            $keluarga->id
-        )
-            ->where('pengguna_id', Auth::id())
-            ->where('status', 'aktif')
-            ->exists();
+        $user = auth()->user();
 
-        abort_unless($punyaAkses, 403);
+
+        $keanggotaan = $keluarga
+            ->pengguna()
+            ->where('users.id', $user->id)
+            ->wherePivot('status', 'aktif')
+            ->first();
+
+
+        if (!$keanggotaan) {
+
+            abort(
+                403,
+                'Anda tidak memiliki akses ke keluarga tersebut.'
+            );
+        }
+
 
         session([
-            'keluarga_id' => $keluarga->id
+            'keluarga_id' =>
+            $keluarga->id,
+
+            'keluarga_level_akses' =>
+            $keanggotaan->pivot->level_akses,
         ]);
 
-        return redirect()->route('dashboard');
+
+        return redirect()
+            ->route('dashboard')
+            ->with(
+                'success',
+                'Keluarga aktif berhasil dipilih.'
+            );
     }
 }

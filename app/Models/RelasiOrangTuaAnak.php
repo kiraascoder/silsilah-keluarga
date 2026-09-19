@@ -9,9 +9,7 @@ class RelasiOrangTuaAnak extends Model
 {
     use HasFactory;
 
-
     protected $table = 'relasi_orang_tua_anak';
-
 
     protected $fillable = [
         'orang_tua_id',
@@ -21,7 +19,6 @@ class RelasiOrangTuaAnak extends Model
     ];
 
 
-
     public function orangTua()
     {
         return $this->belongsTo(
@@ -29,7 +26,6 @@ class RelasiOrangTuaAnak extends Model
             'orang_tua_id'
         );
     }
-
 
 
     public function anak()

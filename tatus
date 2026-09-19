@@ -1,0 +1,10 @@
+[33mbf36f0f[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m git commit -m "feat: build family tree relationship structure"
+[33md644746[m feat: implement initial family tree data structure
+[33m42f091d[m fix: improve family relationship display and deletion
+[33ma6d3d27[m refactor: update relasi orang tua anak migration schema
+[33m473c0a0[m feat: complete anggota keluarga CRUD update functionality
+[33m7f7c603[m feat: add anggota keluarga management with create, read, update features
+[33m0c1417d[m feat: add family-aware navigation and protected application routes
+[33m5f1dde5[m feat: implement family selection and initial dashboard flow
+[33m22db195[m Test Commmit
+[33m7d09a2e[m nd commit

@@ -19,6 +19,7 @@ class RelasiPasanganController extends Controller
             ->where('id', $id)
             ->firstOrFail();
 
+
         $daftarAnggota = AnggotaKeluarga::where(
             'keluarga_id',
             $keluargaId
@@ -27,6 +28,7 @@ class RelasiPasanganController extends Controller
             ->where('status_data', 'aktif')
             ->orderBy('nama_lengkap')
             ->get();
+
 
         return view(
             'pasangan.create',
@@ -40,7 +42,10 @@ class RelasiPasanganController extends Controller
 
     public function store(Request $request)
     {
+        $keluargaId = session('keluarga_id');
+
         $data = $request->validate([
+
             'anggota_utama_id' => [
                 'required',
                 'integer',
@@ -67,74 +72,105 @@ class RelasiPasanganController extends Controller
                 'nullable',
                 'string',
             ],
+
         ]);
 
-        $keluargaId = session('keluarga_id');
 
         $anggotaUtama = AnggotaKeluarga::where(
             'keluarga_id',
             $keluargaId
         )
-            ->where('id', $data['anggota_utama_id'])
+            ->where(
+                'id',
+                $data['anggota_utama_id']
+            )
             ->firstOrFail();
 
-        $pasangan = AnggotaKeluarga::where(
+
+        $anggotaPasangan = AnggotaKeluarga::where(
             'keluarga_id',
             $keluargaId
         )
-            ->where('id', $data['anggota_pasangan_id'])
+            ->where(
+                'id',
+                $data['anggota_pasangan_id']
+            )
             ->firstOrFail();
 
+
         /*
-        |--------------------------------------------------------------------------
-        | Cek apakah hubungan sudah ada
-        |--------------------------------------------------------------------------
-        */
+    |--------------------------------------------------------------------------
+    | Cegah seseorang memiliki dua pasangan aktif
+    |--------------------------------------------------------------------------
+    */
 
-        $sudahAda = RelasiPasangan::where(function ($query) use ($data) {
-
-            $query->where(
-                'anggota_pertama_id',
-                $data['anggota_utama_id']
-            )
-                ->where(
-                    'anggota_kedua_id',
-                    $data['anggota_pasangan_id']
-                );
-        })
-            ->orWhere(function ($query) use ($data) {
-
-                $query->where(
-                    'anggota_pertama_id',
-                    $data['anggota_pasangan_id']
-                )
-                    ->where(
-                        'anggota_kedua_id',
-                        $data['anggota_utama_id']
-                    );
-            })
+        $sudahMemilikiPasangan =
+            $anggotaUtama->relasiPasanganPertama()
+            ->exists()
+            ||
+            $anggotaUtama->relasiPasanganKedua()
             ->exists();
 
 
-        if ($sudahAda) {
+        if ($sudahMemilikiPasangan) {
 
             return back()
                 ->withInput()
                 ->with(
                     'error',
-                    'Hubungan pasangan tersebut sudah terdaftar.'
+                    'Anggota tersebut sudah memiliki pasangan.'
+                );
+        }
+
+
+        /*
+    |--------------------------------------------------------------------------
+    | Cek pasangan juga belum memiliki pasangan
+    |--------------------------------------------------------------------------
+    */
+
+        $pasanganSudahMenikah =
+            $anggotaPasangan->relasiPasanganPertama()
+            ->exists()
+            ||
+            $anggotaPasangan->relasiPasanganKedua()
+            ->exists();
+
+
+        if ($pasanganSudahMenikah) {
+
+            return back()
+                ->withInput()
+                ->with(
+                    'error',
+                    'Anggota yang dipilih sudah memiliki pasangan.'
                 );
         }
 
 
         RelasiPasangan::create([
-            'anggota_pertama_id' => $anggotaUtama->id,
-            'anggota_kedua_id' => $pasangan->id,
-            'status_hubungan' => 'suami_istri',
-            'tanggal_mulai' => $data['tanggal_mulai'] ?? null,
-            'tanggal_berakhir' => $data['tanggal_berakhir'] ?? null,
-            'catatan' => $data['catatan'] ?? null,
-            'dibuat_oleh' => auth()->id(),
+
+            'anggota_pertama_id' =>
+            $anggotaUtama->id,
+
+            'anggota_kedua_id' =>
+            $anggotaPasangan->id,
+
+            'status_hubungan' =>
+            'suami_istri',
+
+            'tanggal_mulai' =>
+            $data['tanggal_mulai'] ?? null,
+
+            'tanggal_berakhir' =>
+            $data['tanggal_berakhir'] ?? null,
+
+            'catatan' =>
+            $data['catatan'] ?? null,
+
+            'dibuat_oleh' =>
+            auth()->id(),
+
         ]);
 
 
@@ -154,29 +190,37 @@ class RelasiPasanganController extends Controller
     {
         $keluargaId = session('keluarga_id');
 
-        $relasi = RelasiPasangan::where('id', $id)
-            ->where(function ($query) use ($keluargaId) {
 
-                $query->whereHas(
-                    'anggotaPertama',
-                    fn($q) => $q->where(
+        $relasi = RelasiPasangan::where(
+            'id',
+            $id
+        )
+            ->whereHas(
+                'anggotaPertama',
+                function ($query) use ($keluargaId) {
+
+                    $query->where(
                         'keluarga_id',
                         $keluargaId
-                    )
-                );
+                    );
+                }
+            )
+            ->whereHas(
+                'anggotaKedua',
+                function ($query) use ($keluargaId) {
 
-                $query->whereHas(
-                    'anggotaKedua',
-                    fn($q) => $q->where(
+                    $query->where(
                         'keluarga_id',
                         $keluargaId
-                    )
-                );
-            })
+                    );
+                }
+            )
             ->firstOrFail();
 
 
-        $anggotaId = $relasi->anggota_pertama_id;
+        $anggotaId =
+            $relasi->anggota_pertama_id;
+
 
         $relasi->delete();
 

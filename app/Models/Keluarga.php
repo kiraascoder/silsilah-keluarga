@@ -13,23 +13,11 @@ class Keluarga extends Model
 
     protected $fillable = [
         'nama_keluarga',
-        'slug',
-        'asal_daerah',
         'deskripsi',
-        'foto',
-        'kode_undangan',
-        'dibuat_oleh',
         'kepala_keluarga_id',
-        'status',
+        'dibuat_oleh',
     ];
 
-    public function pembuat()
-    {
-        return $this->belongsTo(
-            User::class,
-            'dibuat_oleh'
-        );
-    }
 
     public function anggota()
     {
@@ -39,6 +27,30 @@ class Keluarga extends Model
         );
     }
 
+
+    public function pengguna()
+    {
+        return $this->belongsToMany(
+            User::class,
+            'pengguna_keluarga',
+            'keluarga_id',
+            'user_id'
+        )->withPivot([
+            'level_akses',
+            'status',
+        ])->withTimestamps();
+    }
+
+
+    public function undangan()
+    {
+        return $this->hasMany(
+            UndanganKeluarga::class,
+            'keluarga_id'
+        );
+    }
+
+
     public function kepalaKeluarga()
     {
         return $this->belongsTo(
@@ -47,27 +59,12 @@ class Keluarga extends Model
         );
     }
 
-    public function pengguna()
-    {
-        return $this->belongsToMany(
-            User::class,
-            'pengguna_keluarga',
-            'keluarga_id',
-            'pengguna_id'
-        )
-            ->withPivot([
-                'anggota_keluarga_id',
-                'level_akses',
-                'status',
-                'bergabung_pada',
-            ]);
-    }
 
-    public function undangan()
+    public function pembuat()
     {
-        return $this->hasMany(
-            UndanganKeluarga::class,
-            'keluarga_id'
+        return $this->belongsTo(
+            User::class,
+            'dibuat_oleh'
         );
     }
 }

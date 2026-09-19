@@ -12,16 +12,14 @@ return new class extends Migration
     {
 
         Schema::create(
-            'relasi_pasangan',
+            'relasi_orang_tua_anak',
             function(Blueprint $table){
-
 
                 $table->id();
 
 
-
                 $table->foreignId(
-                    'anggota_pertama_id'
+                    'orang_tua_id'
                 )
                 ->constrained(
                     'anggota_keluarga'
@@ -29,9 +27,8 @@ return new class extends Migration
                 ->cascadeOnDelete();
 
 
-
                 $table->foreignId(
-                    'anggota_kedua_id'
+                    'anak_id'
                 )
                 ->constrained(
                     'anggota_keluarga'
@@ -41,34 +38,12 @@ return new class extends Migration
 
 
                 $table->enum(
-                    'status_hubungan',
+                    'jenis_hubungan',
                     [
-                        'suami_istri',
-                        'mantan'
+                        'ayah',
+                        'ibu'
                     ]
-                )
-                ->default(
-                    'suami_istri'
                 );
-
-
-                $table->date(
-                    'tanggal_mulai'
-                )
-                ->nullable();
-
-
-                $table->date(
-                    'tanggal_berakhir'
-                )
-                ->nullable();
-
-
-                $table->text(
-                    'catatan'
-                )
-                ->nullable();
-
 
 
                 $table->foreignId(
@@ -81,14 +56,14 @@ return new class extends Migration
                 ->nullOnDelete();
 
 
-
                 $table->timestamps();
 
 
 
                 $table->unique([
-                    'anggota_pertama_id',
-                    'anggota_kedua_id'
+                    'orang_tua_id',
+                    'anak_id',
+                    'jenis_hubungan'
                 ]);
 
             }
@@ -97,11 +72,14 @@ return new class extends Migration
     }
 
 
+
     public function down(): void
     {
+
         Schema::dropIfExists(
-            'relasi_pasangan'
+            'relasi_orang_tua_anak'
         );
+
     }
 
 };
