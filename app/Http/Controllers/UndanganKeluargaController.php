@@ -2,8 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\AnggotaKeluarga;
-use App\Models\Keluarga;
+use App\Models\PenggunaKeluarga;
 use App\Models\UndanganKeluarga;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -34,10 +33,9 @@ class UndanganKeluargaController extends Controller
         );
     }
 
-
     /*
     |--------------------------------------------------------------------------
-    | Form Undangan
+    | Form Tambah
     |--------------------------------------------------------------------------
     */
 
@@ -46,10 +44,9 @@ class UndanganKeluargaController extends Controller
         return view('undangan.create');
     }
 
-
     /*
     |--------------------------------------------------------------------------
-    | Buat Undangan
+    | Simpan Undangan
     |--------------------------------------------------------------------------
     */
 
@@ -61,32 +58,40 @@ class UndanganKeluargaController extends Controller
             'email' => [
                 'required',
                 'email',
-                'max:255',
+                'max:150',
             ],
         ]);
 
+        $email = strtolower(
+            trim($data['email'])
+        );
 
         /*
         |--------------------------------------------------------------------------
-        | Cek apakah email sudah menjadi anggota keluarga
+        | Cek apakah sudah menjadi anggota
         |--------------------------------------------------------------------------
         */
 
-        $sudahMenjadiAnggota = Keluarga::where(
-            'id',
-            $keluargaId
-        )
+        $sudahMenjadiAnggota =
+            PenggunaKeluarga::where(
+                'keluarga_id',
+                $keluargaId
+            )
             ->whereHas(
                 'pengguna',
-                function ($query) use ($data) {
+                function ($query) use ($email) {
+
                     $query->where(
                         'email',
-                        $data['email']
+                        $email
                     );
                 }
             )
+            ->where(
+                'status',
+                'aktif'
+            )
             ->exists();
-
 
         if ($sudahMenjadiAnggota) {
 
@@ -94,24 +99,24 @@ class UndanganKeluargaController extends Controller
                 ->withInput()
                 ->with(
                     'error',
-                    'Pengguna tersebut sudah menjadi anggota keluarga.'
+                    'Email tersebut sudah menjadi anggota keluarga.'
                 );
         }
 
-
         /*
         |--------------------------------------------------------------------------
-        | Cek undangan yang masih aktif
+        | Cek undangan aktif
         |--------------------------------------------------------------------------
         */
 
-        $undanganAktif = UndanganKeluarga::where(
-            'keluarga_id',
-            $keluargaId
-        )
-            ->where(
-                'email',
-                $data['email']
+        $undanganAktif =
+            UndanganKeluarga::where(
+                'keluarga_id',
+                $keluargaId
+            )
+            ->whereRaw(
+                'LOWER(email) = ?',
+                [$email]
             )
             ->where(
                 'status',
@@ -124,7 +129,6 @@ class UndanganKeluargaController extends Controller
             )
             ->exists();
 
-
         if ($undanganAktif) {
 
             return back()
@@ -135,15 +139,29 @@ class UndanganKeluargaController extends Controller
                 );
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Buat kode unik
+        |--------------------------------------------------------------------------
+        */
+
+        do {
+
+            $kode = Str::random(48);
+        } while (
+            UndanganKeluarga::where(
+                'kode_undangan',
+                $kode
+            )->exists()
+        );
 
         /*
         |--------------------------------------------------------------------------
-        | Buat undangan
+        | Simpan undangan
         |--------------------------------------------------------------------------
         */
 
         $undangan = UndanganKeluarga::create([
-
             'keluarga_id' =>
             $keluargaId,
 
@@ -151,28 +169,25 @@ class UndanganKeluargaController extends Controller
             auth()->id(),
 
             'email' =>
-            $data['email'],
+            $email,
 
             'kode_undangan' =>
-            Str::random(64),
+            $kode,
 
             'status' =>
             'menunggu',
 
             'kedaluwarsa_pada' =>
             now()->addDays(7),
-
         ]);
-
 
         /*
         |--------------------------------------------------------------------------
-        | Untuk tahap awal
+        | Tahap testing
         |--------------------------------------------------------------------------
         |
         | Belum mengirim email.
-        | Kita tampilkan kode terlebih dahulu
-        | untuk testing.
+        | Link ditampilkan pada halaman daftar.
         |
         */
 
@@ -184,7 +199,6 @@ class UndanganKeluargaController extends Controller
             );
     }
 
-
     /*
     |--------------------------------------------------------------------------
     | Terima Undangan
@@ -193,27 +207,53 @@ class UndanganKeluargaController extends Controller
 
     public function terima($kode)
     {
-        $undangan = UndanganKeluarga::where(
-            'kode_undangan',
-            $kode
-        )
-            ->where(
-                'status',
-                'menunggu'
-            )
-            ->first();
+        $undangan =
+            UndanganKeluarga::where(
+                'kode_undangan',
+                $kode
+            )->first();
 
+        /*
+        |--------------------------------------------------------------------------
+        | Undangan tidak ditemukan
+        |--------------------------------------------------------------------------
+        */
 
         if (!$undangan) {
 
             return redirect()
-                ->route('dashboard')
+                ->route(
+                    auth()->check()
+                        ? 'keluarga.pilih'
+                        : 'login'
+                )
                 ->with(
                     'error',
-                    'Undangan tidak ditemukan atau sudah tidak berlaku.'
+                    'Undangan tidak ditemukan.'
                 );
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Cek status
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            $undangan->status !== 'menunggu'
+        ) {
+
+            return redirect()
+                ->route(
+                    auth()->check()
+                        ? 'keluarga.pilih'
+                        : 'login'
+                )
+                ->with(
+                    'error',
+                    'Undangan ini sudah tidak dapat digunakan.'
+                );
+        }
 
         /*
         |--------------------------------------------------------------------------
@@ -230,32 +270,34 @@ class UndanganKeluargaController extends Controller
                 'status' => 'kedaluwarsa',
             ]);
 
-
             return redirect()
-                ->route('dashboard')
+                ->route(
+                    auth()->check()
+                        ? 'keluarga.pilih'
+                        : 'login'
+                )
                 ->with(
                     'error',
                     'Undangan sudah kedaluwarsa.'
                 );
         }
 
-
         /*
         |--------------------------------------------------------------------------
-        | User harus login
+        | User belum login
         |--------------------------------------------------------------------------
         */
 
         if (!auth()->check()) {
 
             session([
-                'kode_undangan' => $kode,
+                'kode_undangan' =>
+                $kode,
             ]);
 
             return redirect()
                 ->route('login');
         }
-
 
         /*
         |--------------------------------------------------------------------------
@@ -263,50 +305,102 @@ class UndanganKeluargaController extends Controller
         |--------------------------------------------------------------------------
         */
 
+        $emailUser = strtolower(
+            trim(auth()->user()->email)
+        );
+
+        $emailUndangan = strtolower(
+            trim($undangan->email)
+        );
+
         if (
-            strtolower(auth()->user()->email)
-            !== strtolower($undangan->email)
+            $emailUser !==
+            $emailUndangan
         ) {
 
             return redirect()
-                ->route('dashboard')
+                ->route('keluarga.pilih')
                 ->with(
                     'error',
                     'Undangan ini ditujukan untuk email yang berbeda.'
                 );
         }
 
-
         /*
         |--------------------------------------------------------------------------
-        | Cegah keanggotaan duplikat
+        | Cek keanggotaan
         |--------------------------------------------------------------------------
         */
 
-        $sudahAda = $undangan
-            ->keluarga
-            ->pengguna()
+        $keanggotaan =
+            PenggunaKeluarga::where(
+                'keluarga_id',
+                $undangan->keluarga_id
+            )
             ->where(
-                'users.id',
+                'pengguna_id',
                 auth()->id()
             )
-            ->exists();
+            ->first();
 
+        /*
+        |--------------------------------------------------------------------------
+        | Jika belum ada, buat keanggotaan
+        |--------------------------------------------------------------------------
+        */
 
-        if (!$sudahAda) {
+        if (!$keanggotaan) {
 
-            $undangan
-                ->keluarga
-                ->pengguna()
-                ->attach(
+            $keanggotaan =
+                PenggunaKeluarga::create([
+
+                    'keluarga_id' =>
+                    $undangan->keluarga_id,
+
+                    'pengguna_id' =>
                     auth()->id(),
-                    [
-                        'level_akses' => 'anggota',
-                        'status' => 'aktif',
-                    ]
-                );
+
+                    'anggota_keluarga_id' =>
+                    null,
+
+                    'level_akses' =>
+                    'anggota',
+
+                    'status' =>
+                    'aktif',
+
+                    'bergabung_pada' =>
+                    now(),
+
+                ]);
+        } else {
+
+            /*
+            |--------------------------------------------------------------------------
+            | Jika sudah ada tetapi pending
+            |--------------------------------------------------------------------------
+            */
+
+            $keanggotaan->update([
+
+                'level_akses' =>
+                'anggota',
+
+                'status' =>
+                'aktif',
+
+                'bergabung_pada' =>
+                $keanggotaan->bergabung_pada
+                    ?? now(),
+
+            ]);
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Tandai undangan diterima
+        |--------------------------------------------------------------------------
+        */
 
         $undangan->update([
 
@@ -321,20 +415,25 @@ class UndanganKeluargaController extends Controller
 
         ]);
 
+        /*
+        |--------------------------------------------------------------------------
+        | Set keluarga aktif
+        |--------------------------------------------------------------------------
+        */
 
         session([
+
             'keluarga_id' =>
             $undangan->keluarga_id,
 
             'keluarga_level_akses' =>
             'anggota',
-        ]);
 
+        ]);
 
         session()->forget(
             'kode_undangan'
         );
-
 
         return redirect()
             ->route('dashboard')

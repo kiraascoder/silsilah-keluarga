@@ -9,7 +9,10 @@ class RelasiPasangan extends Model
 {
     use HasFactory;
 
-    protected $table = 'relasi_pasangan';
+
+    protected $table =
+        'relasi_pasangan';
+
 
     protected $fillable = [
         'anggota_pertama_id',
@@ -20,6 +23,7 @@ class RelasiPasangan extends Model
         'catatan',
         'dibuat_oleh',
     ];
+
 
     protected $casts = [
         'tanggal_mulai' => 'date',

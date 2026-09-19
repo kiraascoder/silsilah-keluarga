@@ -2,14 +2,16 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class PenggunaKeluarga extends Model
 {
     use HasFactory;
 
+
     protected $table = 'pengguna_keluarga';
+
 
     protected $fillable = [
         'keluarga_id',
@@ -20,9 +22,17 @@ class PenggunaKeluarga extends Model
         'bergabung_pada',
     ];
 
+
     protected $casts = [
         'bergabung_pada' => 'datetime',
     ];
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Keluarga
+    |--------------------------------------------------------------------------
+    */
 
     public function keluarga()
     {
@@ -32,6 +42,13 @@ class PenggunaKeluarga extends Model
         );
     }
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | Pengguna
+    |--------------------------------------------------------------------------
+    */
+
     public function pengguna()
     {
         return $this->belongsTo(
@@ -39,6 +56,13 @@ class PenggunaKeluarga extends Model
             'pengguna_id'
         );
     }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Anggota Keluarga
+    |--------------------------------------------------------------------------
+    */
 
     public function anggota()
     {

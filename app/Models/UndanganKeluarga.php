@@ -27,7 +27,6 @@ class UndanganKeluarga extends Model
         'diterima_pada' => 'datetime',
     ];
 
-
     public function keluarga()
     {
         return $this->belongsTo(
@@ -35,7 +34,6 @@ class UndanganKeluarga extends Model
             'keluarga_id'
         );
     }
-
 
     public function pengundang()
     {
@@ -45,12 +43,39 @@ class UndanganKeluarga extends Model
         );
     }
 
-
     public function penerima()
     {
         return $this->belongsTo(
             User::class,
             'diterima_oleh'
         );
+    }
+
+    public function scopeMenunggu($query)
+    {
+        return $query->where(
+            'status',
+            'menunggu'
+        );
+    }
+
+    public function scopeBelumKedaluwarsa($query)
+    {
+        return $query
+            ->where(
+                'status',
+                'menunggu'
+            )
+            ->where(function ($query) {
+
+                $query
+                    ->whereNull('kedaluwarsa_pada')
+                    ->orWhere(
+                        'kedaluwarsa_pada',
+                        '>',
+                        now()
+                    );
+
+            });
     }
 }

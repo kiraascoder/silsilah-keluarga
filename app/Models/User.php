@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -10,11 +9,17 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password'])]
-#[Hidden(['password', 'remember_token'])]
+#[Fillable([
+    'name',
+    'email',
+    'password'
+])]
+#[Hidden([
+    'password',
+    'remember_token'
+])]
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
     protected $fillable = [
@@ -23,11 +28,7 @@ class User extends Authenticatable
         'phone',
         'password',
     ];
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
+
     protected function casts(): array
     {
         return [
@@ -35,18 +36,49 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Keluarga
+    |--------------------------------------------------------------------------
+    */
+
     public function keluarga()
     {
         return $this->belongsToMany(
             Keluarga::class,
             'pengguna_keluarga',
-            'user_id',
+            'pengguna_id',
             'keluarga_id'
         )->withPivot([
+            'id',
+            'anggota_keluarga_id',
             'level_akses',
             'status',
+            'bergabung_pada',
         ])->withTimestamps();
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Data Keanggotaan
+    |--------------------------------------------------------------------------
+    */
+
+    public function dataKeluarga()
+    {
+        return $this->hasMany(
+            PenggunaKeluarga::class,
+            'pengguna_id'
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Undangan Dibuat
+    |--------------------------------------------------------------------------
+    */
+
     public function undanganDibuat()
     {
         return $this->hasMany(
@@ -55,6 +87,11 @@ class User extends Authenticatable
         );
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Undangan Diterima
+    |--------------------------------------------------------------------------
+    */
 
     public function undanganDiterima()
     {

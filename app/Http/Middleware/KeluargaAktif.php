@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\Keluarga;
+use App\Models\PenggunaKeluarga;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -16,25 +17,28 @@ class KeluargaAktif
 
         /*
         |--------------------------------------------------------------------------
-        | Pastikan user sudah login
+        | Pastikan login
         |--------------------------------------------------------------------------
         */
 
         if (!auth()->check()) {
-            return redirect()->route('login');
+            return redirect()
+                ->route('login');
         }
 
 
         /*
         |--------------------------------------------------------------------------
-        | Ambil keluarga aktif dari session
+        | Ambil keluarga aktif
         |--------------------------------------------------------------------------
         */
 
-        $keluargaId = session('keluarga_id');
+        $keluargaId =
+            session('keluarga_id');
 
 
         if (!$keluargaId) {
+
             return redirect()
                 ->route('keluarga.pilih')
                 ->with(
@@ -46,11 +50,17 @@ class KeluargaAktif
 
         /*
         |--------------------------------------------------------------------------
-        | Pastikan keluarga masih tersedia
+        | Cari keluarga
         |--------------------------------------------------------------------------
         */
 
-        $keluarga = Keluarga::find($keluargaId);
+        $keluarga =
+            Keluarga::aktif()
+                ->where(
+                    'id',
+                    $keluargaId
+                )
+                ->first();
 
 
         if (!$keluarga) {
@@ -60,25 +70,35 @@ class KeluargaAktif
                 'keluarga_level_akses',
             ]);
 
+
             return redirect()
                 ->route('keluarga.pilih')
                 ->with(
                     'error',
-                    'Keluarga yang dipilih tidak ditemukan.'
+                    'Keluarga aktif tidak ditemukan.'
                 );
         }
 
 
         /*
         |--------------------------------------------------------------------------
-        | Pastikan user memiliki akses ke keluarga
+        | Pastikan user adalah anggota keluarga
         |--------------------------------------------------------------------------
         */
 
-        $keanggotaan = $keluarga
-            ->pengguna()
-            ->where('users.id', auth()->id())
-            ->wherePivot('status', 'aktif')
+        $keanggotaan =
+            PenggunaKeluarga::where(
+                'keluarga_id',
+                $keluarga->id
+            )
+            ->where(
+                'pengguna_id',
+                auth()->id()
+            )
+            ->where(
+                'status',
+                'aktif'
+            )
             ->first();
 
 
@@ -88,6 +108,7 @@ class KeluargaAktif
                 'keluarga_id',
                 'keluarga_level_akses',
             ]);
+
 
             return redirect()
                 ->route('keluarga.pilih')
@@ -100,19 +121,19 @@ class KeluargaAktif
 
         /*
         |--------------------------------------------------------------------------
-        | Simpan data akses ke session
+        | Sinkronkan level akses
         |--------------------------------------------------------------------------
         */
 
         session([
             'keluarga_level_akses' =>
-            $keanggotaan->pivot->level_akses,
+                $keanggotaan->level_akses,
         ]);
 
 
         /*
         |--------------------------------------------------------------------------
-        | Bagikan keluarga aktif ke seluruh view
+        | Share ke Blade
         |--------------------------------------------------------------------------
         */
 
@@ -124,7 +145,7 @@ class KeluargaAktif
 
         view()->share(
             'levelAksesKeluarga',
-            $keanggotaan->pivot->level_akses
+            $keanggotaan->level_akses
         );
 
 

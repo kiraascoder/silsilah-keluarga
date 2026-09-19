@@ -18,6 +18,11 @@ class Keluarga extends Model
         'dibuat_oleh',
     ];
 
+    /*
+    |--------------------------------------------------------------------------
+    | Anggota Keluarga
+    |--------------------------------------------------------------------------
+    */
 
     public function anggota()
     {
@@ -27,6 +32,11 @@ class Keluarga extends Model
         );
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Pengguna Keluarga
+    |--------------------------------------------------------------------------
+    */
 
     public function pengguna()
     {
@@ -34,13 +44,35 @@ class Keluarga extends Model
             User::class,
             'pengguna_keluarga',
             'keluarga_id',
-            'user_id'
+            'pengguna_id'
         )->withPivot([
+            'id',
+            'anggota_keluarga_id',
             'level_akses',
             'status',
+            'bergabung_pada',
         ])->withTimestamps();
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Data Keanggotaan
+    |--------------------------------------------------------------------------
+    */
+
+    public function dataPengguna()
+    {
+        return $this->hasMany(
+            PenggunaKeluarga::class,
+            'keluarga_id'
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Undangan
+    |--------------------------------------------------------------------------
+    */
 
     public function undangan()
     {
@@ -50,6 +82,11 @@ class Keluarga extends Model
         );
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Kepala Keluarga
+    |--------------------------------------------------------------------------
+    */
 
     public function kepalaKeluarga()
     {
@@ -59,6 +96,11 @@ class Keluarga extends Model
         );
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Pembuat
+    |--------------------------------------------------------------------------
+    */
 
     public function pembuat()
     {

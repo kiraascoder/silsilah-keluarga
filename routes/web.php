@@ -12,28 +12,36 @@ use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| Halaman Publik
+| Public
 |--------------------------------------------------------------------------
 */
 
 Route::get('/', function () {
+
     return view('welcome');
 })->name('welcome');
 
 
+
 /*
 |--------------------------------------------------------------------------
-| Halaman Setelah Login
+| Authentication
 |--------------------------------------------------------------------------
 */
 
 Route::middleware('auth')->group(function () {
+
 
     /*
     |--------------------------------------------------------------------------
     | Keluarga
     |--------------------------------------------------------------------------
     */
+
+    Route::get(
+        '/undangan/{kode}/terima',
+        [UndanganKeluargaController::class, 'terima']
+    )->name('undangan.terima');
 
     Route::get(
         '/pilih-keluarga',
@@ -85,12 +93,49 @@ Route::middleware('auth')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
+    | Terima Undangan
+    |--------------------------------------------------------------------------
+    |
+    | Tidak menggunakan keluarga.aktif karena penerima
+    | bisa jadi belum menjadi anggota keluarga.
+    |
+    */
+
+    Route::get(
+        '/undangan/{kode}/terima',
+        [UndanganKeluargaController::class, 'terima']
+    )->name('undangan.terima');
+
+
+    /*
+    |--------------------------------------------------------------------------
     | Keluarga Aktif
     |--------------------------------------------------------------------------
     */
 
     Route::middleware('keluarga.aktif')->group(function () {
 
+
+        Route::middleware('hak.akses:pemilik,editor')
+            ->group(function () {
+
+                Route::get(
+                    '/undangan-keluarga',
+                    [UndanganKeluargaController::class, 'index']
+                )->name('undangan.index');
+
+
+                Route::get(
+                    '/undangan-keluarga/tambah',
+                    [UndanganKeluargaController::class, 'create']
+                )->name('undangan.create');
+
+
+                Route::post(
+                    '/undangan-keluarga',
+                    [UndanganKeluargaController::class, 'store']
+                )->name('undangan.store');
+            });
         /*
         |--------------------------------------------------------------------------
         | Dashboard
@@ -100,6 +145,7 @@ Route::middleware('auth')->group(function () {
         Route::get(
             '/dashboard',
             function () {
+
                 return view('dashboard');
             }
         )->name('dashboard');
@@ -119,7 +165,7 @@ Route::middleware('auth')->group(function () {
 
         /*
         |--------------------------------------------------------------------------
-        | Anggota Keluarga
+        | Anggota - Read
         |--------------------------------------------------------------------------
         */
 
@@ -129,95 +175,140 @@ Route::middleware('auth')->group(function () {
         )->name('anggota.index');
 
 
-        Route::get(
-            '/anggota-keluarga/tambah',
-            [AnggotaKeluargaController::class, 'create']
-        )->name('anggota.create');
+        /*
+        |--------------------------------------------------------------------------
+        | Anggota - Write
+        |--------------------------------------------------------------------------
+        */
+
+        Route::middleware(
+            'hak.akses:pemilik,editor'
+        )->group(function () {
 
 
-        Route::post(
-            '/anggota-keluarga',
-            [AnggotaKeluargaController::class, 'store']
-        )->name('anggota.store');
+            Route::get(
+                '/anggota-keluarga/tambah',
+                [AnggotaKeluargaController::class, 'create']
+            )->name('anggota.create');
 
+
+            Route::post(
+                '/anggota-keluarga',
+                [AnggotaKeluargaController::class, 'store']
+            )->name('anggota.store');
+
+
+            Route::get(
+                '/anggota-keluarga/{id}/edit',
+                [AnggotaKeluargaController::class, 'edit']
+            )->name('anggota.edit');
+
+
+            Route::put(
+                '/anggota-keluarga/{id}',
+                [AnggotaKeluargaController::class, 'update']
+            )->name('anggota.update');
+
+
+            Route::delete(
+                '/anggota-keluarga/{id}',
+                [AnggotaKeluargaController::class, 'destroy']
+            )->name('anggota.destroy');
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Relasi Orang Tua Anak
+            |--------------------------------------------------------------------------
+            */
+
+            Route::get(
+                '/anggota-keluarga/{id}/tambah-relasi',
+                [RelasiOrangTuaAnakController::class, 'create']
+            )->name('relasi.create');
+
+
+            Route::post(
+                '/relasi-orang-tua-anak',
+                [RelasiOrangTuaAnakController::class, 'store']
+            )->name('relasi.store');
+
+
+            Route::delete(
+                '/relasi-orang-tua-anak/{id}',
+                [RelasiOrangTuaAnakController::class, 'destroy']
+            )->name('relasi.destroy');
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Relasi Pasangan
+            |--------------------------------------------------------------------------
+            */
+
+            Route::get(
+                '/anggota-keluarga/{id}/tambah-pasangan',
+                [RelasiPasanganController::class, 'create']
+            )->name('pasangan.create');
+
+
+            Route::post(
+                '/relasi-pasangan',
+                [RelasiPasanganController::class, 'store']
+            )->name('pasangan.store');
+
+
+            Route::delete(
+                '/relasi-pasangan/{id}',
+                [RelasiPasanganController::class, 'destroy']
+            )->name('pasangan.destroy');
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Undangan Keluarga
+            |--------------------------------------------------------------------------
+            */
+
+            Route::get(
+                '/undangan-keluarga',
+                [UndanganKeluargaController::class, 'index']
+            )->name('undangan.index');
+
+
+            Route::get(
+                '/undangan-keluarga/tambah',
+                [UndanganKeluargaController::class, 'create']
+            )->name('undangan.create');
+
+
+            Route::post(
+                '/undangan-keluarga',
+                [UndanganKeluargaController::class, 'store']
+            )->name('undangan.store');
+        });
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Detail Anggota
+        |--------------------------------------------------------------------------
+        |
+        | Harus berada setelah route /tambah dan /{id}/edit.
+        |
+        */
 
         Route::get(
             '/anggota-keluarga/{id}',
             [AnggotaKeluargaController::class, 'show']
         )->name('anggota.show');
-
-
-        Route::get(
-            '/anggota-keluarga/{id}/edit',
-            [AnggotaKeluargaController::class, 'edit']
-        )->name('anggota.edit');
-
-
-        Route::put(
-            '/anggota-keluarga/{id}',
-            [AnggotaKeluargaController::class, 'update']
-        )->name('anggota.update');
-
-
-        Route::delete(
-            '/anggota-keluarga/{id}',
-            [AnggotaKeluargaController::class, 'destroy']
-        )->name('anggota.destroy');
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Relasi Orang Tua - Anak
-        |--------------------------------------------------------------------------
-        */
-
-        Route::get(
-            '/anggota-keluarga/{id}/tambah-relasi',
-            [RelasiOrangTuaAnakController::class, 'create']
-        )->name('relasi.create');
-
-
-        Route::post(
-            '/relasi-orang-tua-anak',
-            [RelasiOrangTuaAnakController::class, 'store']
-        )->name('relasi.store');
-
-
-        Route::delete(
-            '/relasi-orang-tua-anak/{id}',
-            [RelasiOrangTuaAnakController::class, 'destroy']
-        )->name('relasi.destroy');
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Relasi Pasangan
-        |--------------------------------------------------------------------------
-        */
-
-        Route::get(
-            '/anggota-keluarga/{id}/tambah-pasangan',
-            [RelasiPasanganController::class, 'create']
-        )->name('pasangan.create');
-
-
-        Route::post(
-            '/relasi-pasangan',
-            [RelasiPasanganController::class, 'store']
-        )->name('pasangan.store');
-
-
-        Route::delete(
-            '/relasi-pasangan/{id}',
-            [RelasiPasanganController::class, 'destroy']
-        )->name('pasangan.destroy');
     });
 });
 
 
 /*
 |--------------------------------------------------------------------------
-| Authentication
+| Authentication Routes
 |--------------------------------------------------------------------------
 */
 
