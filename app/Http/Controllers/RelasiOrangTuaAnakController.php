@@ -65,49 +65,45 @@ class RelasiOrangTuaAnakController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'anggota_utama_id' => [
-                'required',
-                'exists:anggota_keluarga,id',
-            ],
-
-            'arah_relasi' => [
-                'required',
-                'in:orang_tua,anak',
-            ],
-
-            'jenis_hubungan' => [
-                'required',
-                'in:ayah,ibu,anak',
-            ],
-
-            'anggota_id' => [
-                'required',
-                'exists:anggota_keluarga,id',
-                'different:anggota_utama_id',
-            ],
+            'anggota_utama_id' => ['required', 'integer', 'exists:anggota_keluarga,id'],
+            'anggota_id' => ['required', 'integer', 'exists:anggota_keluarga,id'],
+            'arah_relasi' => ['required', 'in:orang_tua,anak'],
+            'jenis_hubungan' => ['required', 'in:ayah,ibu,anak'],
         ]);
 
-        /*
-    |--------------------------------------------------------------------------
-    | Tentukan posisi hubungan
-    |--------------------------------------------------------------------------
-    */
+        if ($validated['anggota_utama_id'] == $validated['anggota_id']) {
+            return back()
+                ->withInput()
+                ->with('error', 'Anggota tidak dapat dihubungkan dengan dirinya sendiri.');
+        }
+
+        if (
+            $validated['arah_relasi'] === 'orang_tua'
+            && !in_array($validated['jenis_hubungan'], ['ayah', 'ibu'])
+        ) {
+            return back()
+                ->withInput()
+                ->with('error', 'Jenis hubungan orang tua tidak valid.');
+        }
+
+        if (
+            $validated['arah_relasi'] === 'anak'
+            && $validated['jenis_hubungan'] !== 'anak'
+        ) {
+            return back()
+                ->withInput()
+                ->with('error', 'Jenis hubungan anak tidak valid.');
+        }
 
         if ($validated['arah_relasi'] === 'orang_tua') {
-            // Anggota yang dipilih adalah orang tua
+
             $orangTuaId = $validated['anggota_id'];
             $anakId = $validated['anggota_utama_id'];
         } else {
-            // Anggota yang dipilih adalah anak
+
             $orangTuaId = $validated['anggota_utama_id'];
             $anakId = $validated['anggota_id'];
         }
-
-        /*
-    |--------------------------------------------------------------------------
-    | Simpan relasi
-    |--------------------------------------------------------------------------
-    */
 
         RelasiOrangTuaAnak::create([
             'orang_tua_id' => $orangTuaId,

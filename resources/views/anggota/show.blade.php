@@ -139,8 +139,7 @@
                 <div class="shrink-0">
 
                     @if ($anggota->foto)
-                        <img src="{{ asset('storage/' . $anggota->foto) }}"
-                            alt="{{ $anggota->nama_lengkap }}"
+                        <img src="{{ asset('storage/' . $anggota->foto) }}" alt="{{ $anggota->nama_lengkap }}"
                             class="w-28 h-28
                                    rounded-full
                                    object-cover
@@ -447,44 +446,65 @@
 
             <div
                 class="flex flex-col
-                       sm:flex-row
-                       sm:items-center
-                       sm:justify-between
-                       gap-4
-                       mb-6">
+            sm:flex-row
+            sm:items-center
+            sm:justify-between
+            gap-4
+            mb-6">
 
                 <div>
-
-                    <h2 class="text-lg font-bold">
+                    <h2 class="text-lg font-bold text-slate-900">
                         Hubungan Keluarga
                     </h2>
 
                     <p class="text-sm text-slate-500 mt-1">
                         Hubungan anggota dalam silsilah keluarga.
                     </p>
-
                 </div>
 
+                <div class="flex flex-wrap items-center gap-2">
 
-                <a href="{{ route('relasi.create', $anggota->id) }}"
-                    class="inline-flex
-                           items-center
-                           justify-center
-                           gap-2
-                           bg-blue-600
-                           hover:bg-blue-700
-                           text-white
-                           rounded-xl
-                           px-4
-                           py-2.5
-                           text-sm
-                           font-semibold">
+                    {{-- Tambah Hubungan Orang Tua / Anak --}}
+                    <a href="{{ route('relasi.create', $anggota->id) }}"
+                        class="inline-flex
+                   items-center
+                   justify-center
+                   gap-2
+                   rounded-xl
+                   bg-blue-600
+                   px-4
+                   py-2.5
+                   text-sm
+                   font-semibold
+                   text-white
+                   transition
+                   hover:bg-blue-700">
+                        <i data-lucide="plus" class="h-4 w-4"></i>
 
-                    <i data-lucide="plus" class="w-4 h-4"></i>
+                        Tambah Hubungan
+                    </a>
 
-                    Tambah Hubungan
+                    {{-- Tambah Pasangan --}}
+                    <a href="{{ route('pasangan.create', $anggota->id) }}"
+                        class="inline-flex
+                   items-center
+                   justify-center
+                   gap-2
+                   rounded-xl
+                   bg-rose-600
+                   px-4
+                   py-2.5
+                   text-sm
+                   font-semibold
+                   text-white
+                   transition
+                   hover:bg-rose-700">
+                        <i data-lucide="heart" class="h-4 w-4"></i>
 
-                </a>
+                        Tambah Pasangan
+                    </a>
+
+                </div>
 
             </div>
 
@@ -584,8 +604,7 @@
                             </a>
 
 
-                            <form method="POST"
-                                action="{{ route('relasi.destroy', $orangTua->pivot->id) }}"
+                            <form method="POST" action="{{ route('relasi.destroy', $orangTua->pivot->id) }}"
                                 onsubmit="return confirm(
                                     'Hapus hubungan keluarga ini?'
                                 )">
@@ -683,8 +702,7 @@
                                        min-w-0">
 
                                 @if ($anak->foto)
-                                    <img src="{{ asset('storage/' . $anak->foto) }}"
-                                        alt="{{ $anak->nama_lengkap }}"
+                                    <img src="{{ asset('storage/' . $anak->foto) }}" alt="{{ $anak->nama_lengkap }}"
                                         class="w-10 h-10
                                                rounded-full
                                                object-cover
@@ -724,8 +742,7 @@
                             </a>
 
 
-                            <form method="POST"
-                                action="{{ route('relasi.destroy', $anak->pivot->id) }}"
+                            <form method="POST" action="{{ route('relasi.destroy', $anak->pivot->id) }}"
                                 onsubmit="return confirm(
                                     'Hapus hubungan keluarga ini?'
                                 )">
@@ -929,8 +946,7 @@
             </a>
 
 
-            <form method="POST"
-                action="{{ route('anggota.destroy', $anggota->id) }}"
+            <form method="POST" action="{{ route('anggota.destroy', $anggota->id) }}"
                 onsubmit="return confirm(
                     'Apakah Anda yakin ingin menonaktifkan anggota ini?'
                 )">

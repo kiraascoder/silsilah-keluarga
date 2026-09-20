@@ -442,4 +442,19 @@ class UndanganKeluargaController extends Controller
                 'Anda berhasil bergabung ke keluarga.'
             );
     }
+
+    public function destroy($id)
+    {
+        $keluargaId = session('keluarga_id');
+
+        $undangan = UndanganKeluarga::where('id', $id)
+            ->where('keluarga_id', $keluargaId)
+            ->firstOrFail();
+
+        $undangan->delete();
+
+        return redirect()
+            ->route('undangan.index')
+            ->with('success', 'Undangan berhasil dihapus.');
+    }
 }

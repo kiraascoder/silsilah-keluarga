@@ -1,135 +1,210 @@
-@extends('layouts.member')
+<x-app-layout>
 
-@section('title', 'Buat Undangan')
+    <div class="mx-auto max-w-3xl">
 
-@section('content')
-
-    <div class="max-w-2xl mx-auto">
-
-        {{-- Breadcrumb --}}
-
+        {{-- Header --}}
         <div class="mb-8">
 
-            <div class="flex items-center gap-2 text-sm mb-3">
-
-                <a href="{{ route('undangan.index') }}" class="text-blue-600 hover:underline">
-                    Undangan Keluarga
+            <div class="mb-4">
+                <a href="{{ route('undangan.index') }}"
+                    class="inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition hover:text-blue-600">
+                    <i data-lucide="arrow-left" class="h-4 w-4"></i>
+                    Kembali ke Undangan
                 </a>
-
-                <span class="text-slate-400">
-                    /
-                </span>
-
-                <span class="text-slate-500">
-                    Buat Undangan
-                </span>
-
             </div>
 
-
             <h1 class="text-3xl font-bold text-slate-900">
-                Buat Undangan
+                Buat Undangan Keluarga
             </h1>
 
-            <p class="text-slate-500 mt-1">
-                Undang pengguna untuk bergabung ke keluarga.
+            <p class="mt-2 text-slate-500">
+                Undang anggota keluarga untuk bergabung ke dalam keluarga ini.
             </p>
 
         </div>
 
 
-        @if (session('error'))
-            <div
-                class="mb-6 rounded-xl
-                   border border-red-200
-                   bg-red-50
-                   px-5 py-4
-                   text-sm text-red-700">
+        {{-- Error --}}
+        @if ($errors->any())
 
-                {{ session('error') }}
+            <div class="mb-6 rounded-2xl border border-red-200 bg-red-50 p-5">
+
+                <div class="flex gap-3">
+
+                    <i data-lucide="alert-circle" class="mt-0.5 h-5 w-5 shrink-0 text-red-600"></i>
+
+                    <div>
+
+                        <p class="font-semibold text-red-800">
+                            Undangan tidak dapat dibuat
+                        </p>
+
+                        <ul class="mt-2 space-y-1 text-sm text-red-700">
+
+                            @foreach ($errors->all() as $error)
+                                <li>
+                                    • {{ $error }}
+                                </li>
+                            @endforeach
+
+                        </ul>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        @endif
+
+
+        {{-- Session Error --}}
+        @if (session('error'))
+            <div class="mb-6 rounded-2xl border border-red-200 bg-red-50 p-5">
+
+                <div class="flex gap-3">
+
+                    <i data-lucide="alert-circle" class="mt-0.5 h-5 w-5 shrink-0 text-red-600"></i>
+
+                    <p class="text-sm text-red-700">
+                        {{ session('error') }}
+                    </p>
+
+                </div>
 
             </div>
         @endif
 
 
-        <form method="POST" action="{{ route('undangan.store') }}"
-            class="bg-white
-               border border-slate-200
-               rounded-2xl
-               p-7">
+        {{-- Form Card --}}
+        <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
 
-            @csrf
+            {{-- Card Header --}}
+            <div class="border-b border-slate-200 px-6 py-5">
 
+                <div class="flex items-center gap-4">
 
-            <div>
+                    <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
 
-                <label for="email"
-                    class="block
-                       text-sm
-                       font-semibold
-                       text-slate-700
-                       mb-2">
-                    Email Pengguna
-                </label>
+                        <i data-lucide="mail-plus" class="h-6 w-6"></i>
 
+                    </div>
 
-                <input id="email" type="email" name="email" value="{{ old('email') }}"
-                    placeholder="contoh@email.com" required autofocus
-                    class="w-full
-                       border border-slate-300
-                       rounded-xl
-                       px-4 py-3
-                       focus:outline-none
-                       focus:ring-2
-                       focus:ring-blue-500">
+                    <div>
 
+                        <h2 class="font-bold text-slate-900">
+                            Informasi Undangan
+                        </h2>
 
-                @error('email')
-                    <p class="text-sm text-red-600 mt-2">
-                        {{ $message }}
-                    </p>
-                @enderror
+                        <p class="mt-1 text-sm text-slate-500">
+                            Masukkan email pengguna yang ingin diundang.
+                        </p>
 
+                    </div>
 
-                <p class="text-xs text-slate-400 mt-2">
-                    Undangan berlaku selama 7 hari.
-                </p>
+                </div>
 
             </div>
 
 
-            <div class="flex
-                   justify-end
-                   gap-3
-                   mt-8">
+            {{-- Form --}}
+            <form action="{{ route('undangan.store') }}" method="POST">
 
-                <a href="{{ route('undangan.index') }}"
-                    class="border
-                       border-slate-300
-                       rounded-xl
-                       px-5 py-3
-                       font-medium
-                       hover:bg-slate-50">
-                    Batal
-                </a>
+                @csrf
+
+                <div class="space-y-6 px-6 py-6">
+
+                    {{-- Email --}}
+                    <div>
+
+                        <label for="email" class="mb-2 block text-sm font-semibold text-slate-700">
+                            Email
+                            <span class="text-red-500">*</span>
+                        </label>
+
+                        <div class="relative">
+
+                            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+
+                                <i data-lucide="mail" class="h-5 w-5 text-slate-400"></i>
+
+                            </div>
+
+                            <input type="email" id="email" name="email" value="{{ old('email') }}"
+                                placeholder="contoh@email.com" autocomplete="email" required maxlength="150"
+                                class="w-full rounded-xl border border-slate-300 bg-white py-3.5 pl-12 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+
+                        </div>
+
+                        <p class="mt-2 text-xs text-slate-500">
+                            Gunakan email yang terdaftar atau akan digunakan oleh anggota keluarga.
+                        </p>
+
+                    </div>
 
 
-                <button type="submit"
-                    class="bg-blue-600
-                       hover:bg-blue-700
-                       text-white
-                       rounded-xl
-                       px-5 py-3
-                       font-semibold">
+                    {{-- Informasi --}}
+                    <div class="rounded-xl border border-blue-100 bg-blue-50 p-4">
 
-                    Buat Undangan
+                        <div class="flex gap-3">
 
-                </button>
+                            <i data-lucide="info" class="mt-0.5 h-5 w-5 shrink-0 text-blue-600"></i>
 
-            </div>
+                            <div class="text-sm text-blue-800">
 
-        </form>
+                                <p class="font-semibold">
+                                    Informasi undangan
+                                </p>
+
+                                <ul class="mt-2 space-y-1.5 text-blue-700">
+
+                                    <li>
+                                        • Undangan berlaku selama 7 hari.
+                                    </li>
+
+                                    <li>
+                                        • Satu email tidak dapat memiliki undangan aktif yang sama.
+                                    </li>
+
+                                    <li>
+                                        • Penerima harus masuk menggunakan email yang sesuai dengan undangan.
+                                    </li>
+
+                                </ul>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                {{-- Footer --}}
+                <div
+                    class="flex flex-col-reverse gap-3 border-t border-slate-200 bg-slate-50 px-6 py-5 sm:flex-row sm:justify-end">
+
+                    <a href="{{ route('undangan.index') }}"
+                        class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100">
+                        Batal
+                    </a>
+
+                    <button type="submit"
+                        class="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+
+                        <i data-lucide="send" class="h-4 w-4"></i>
+
+                        Buat Undangan
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
 
     </div>
 
-@endsection
+</x-app-layout>

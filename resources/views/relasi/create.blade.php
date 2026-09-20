@@ -105,171 +105,109 @@
 
             {{-- Detail hubungan --}}
 
-            <div class="bg-white border border-slate-200
-                   rounded-2xl p-7">
+            {{-- Detail hubungan --}}
+            <div class="bg-white border border-slate-200 rounded-2xl p-7">
 
-                <h2 class="text-lg font-bold mb-6">
-                    Detail Hubungan
-                </h2>
+                <div class="mb-6">
+                    <h2 class="text-lg font-bold text-slate-900">
+                        Detail Hubungan
+                    </h2>
 
+                    <p class="text-sm text-slate-500 mt-1">
+                        Tentukan hubungan anggota ini dengan anggota keluarga lainnya.
+                    </p>
+                </div>
 
-                <div class="grid grid-cols-2 gap-6">
-
+                <div class="space-y-6">
 
                     {{-- Arah hubungan --}}
-
                     <div>
-
-                        <label class="block font-medium mb-2">
-
-                            Hubungan
-
+                        <label for="arah_relasi" class="block text-sm font-medium text-slate-700 mb-2">
+                            Hubungkan sebagai
                         </label>
 
-
-                        <select name="arah_relasi"
-                            class="w-full border border-slate-300
-                               rounded-xl px-4 py-3"
+                        <select id="arah_relasi" name="arah_relasi"
+                            class="w-full rounded-xl border border-slate-300 px-4 py-3
+                       focus:border-blue-500 focus:ring-blue-500"
                             required>
-
-
                             <option value="">
                                 Pilih hubungan
                             </option>
 
-
-                            <option value="orang_tua" @selected(old('arah_relasi') === 'orang_tua')>
-
-                                Dia adalah orang tua
-
+                            <option value="orang_tua" {{ old('arah_relasi') === 'orang_tua' ? 'selected' : '' }}>
+                                Orang Tua
                             </option>
 
-
-                            <option value="anak" @selected(old('arah_relasi') === 'anak')>
-
-                                Dia adalah anak
-
+                            <option value="anak" {{ old('arah_relasi') === 'anak' ? 'selected' : '' }}>
+                                Anak
                             </option>
-
-
                         </select>
 
                         @error('arah_relasi')
-                            <p class="text-red-500 text-sm mt-1">
+                            <p class="mt-1 text-sm text-red-600">
                                 {{ $message }}
                             </p>
                         @enderror
-
                     </div>
-
 
 
                     {{-- Jenis hubungan --}}
-
                     <div>
-
-                        <label class="block font-medium mb-2">
-
+                        <label for="jenis_hubungan" class="block text-sm font-medium text-slate-700 mb-2">
                             Jenis Hubungan
-
                         </label>
 
-
-                        <select name="jenis_hubungan"
-                            class="w-full border border-slate-300
-                               rounded-xl px-4 py-3"
+                        <select id="jenis_hubungan" name="jenis_hubungan"
+                            class="w-full rounded-xl border border-slate-300 px-4 py-3
+                       focus:border-blue-500 focus:ring-blue-500"
                             required>
-
-
                             <option value="">
                                 Pilih jenis hubungan
                             </option>
-
-
-                            <option value="ayah" @selected(old('jenis_hubungan') === 'ayah')>
-
-                                Ayah
-
-                            </option>
-
-
-                            <option value="ibu" @selected(old('jenis_hubungan') === 'ibu')>
-
-                                Ibu
-
-                            </option>
-
-
-                            <option value="anak" @selected(old('jenis_hubungan') === 'anak')>
-
-                                Anak
-
-                            </option>
-
-
                         </select>
 
                         @error('jenis_hubungan')
-                            <p class="text-red-500 text-sm mt-1">
+                            <p class="mt-1 text-sm text-red-600">
                                 {{ $message }}
                             </p>
                         @enderror
-
                     </div>
 
 
-
-                    {{-- Pilih anggota --}}
-
-                    <div class="col-span-2">
-
-                        <label class="block font-medium mb-2">
-
+                    {{-- Anggota yang dihubungkan --}}
+                    <div>
+                        <label for="anggota_id" class="block text-sm font-medium text-slate-700 mb-2">
                             Pilih Anggota Keluarga
-
                         </label>
 
-
-                        <select name="anggota_id"
-                            class="w-full border border-slate-300
-                               rounded-xl px-4 py-3"
+                        <select id="anggota_id" name="anggota_id"
+                            class="w-full rounded-xl border border-slate-300 px-4 py-3
+                       focus:border-blue-500 focus:ring-blue-500"
                             required>
-
-
                             <option value="">
                                 Pilih anggota
                             </option>
 
-
                             @foreach ($daftarAnggota as $item)
-                                <option value="{{ $item->id }}" @selected(old('anggota_id') == $item->id)>
-
+                                <option value="{{ $item->id }}"
+                                    {{ old('anggota_id') == $item->id ? 'selected' : '' }}>
                                     {{ $item->nama_lengkap }}
-
                                     @if ($item->generasi)
                                         — Generasi {{ $item->generasi }}
                                     @endif
-
                                 </option>
                             @endforeach
-
-
                         </select>
 
-
                         @error('anggota_id')
-                            <p class="text-red-500 text-sm mt-1">
+                            <p class="mt-1 text-sm text-red-600">
                                 {{ $message }}
                             </p>
                         @enderror
-
                     </div>
 
-
                 </div>
-
             </div>
-
 
 
             {{-- Tombol --}}
@@ -300,5 +238,56 @@
         </form>
 
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
 
+            const arahRelasi = document.getElementById('arah_relasi');
+            const jenisHubungan = document.getElementById('jenis_hubungan');
+
+            const oldJenis = @json(old('jenis_hubungan'));
+
+            function updateJenisHubungan() {
+
+                const arah = arahRelasi.value;
+
+                jenisHubungan.innerHTML = '';
+
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = 'Pilih jenis hubungan';
+
+                jenisHubungan.appendChild(defaultOption);
+
+                if (arah === 'orang_tua') {
+
+                    const ayah = document.createElement('option');
+                    ayah.value = 'ayah';
+                    ayah.textContent = 'Ayah';
+
+                    const ibu = document.createElement('option');
+                    ibu.value = 'ibu';
+                    ibu.textContent = 'Ibu';
+
+                    jenisHubungan.appendChild(ayah);
+                    jenisHubungan.appendChild(ibu);
+
+                } else if (arah === 'anak') {
+
+                    const anak = document.createElement('option');
+                    anak.value = 'anak';
+                    anak.textContent = 'Anak';
+
+                    jenisHubungan.appendChild(anak);
+                }
+
+                if (oldJenis) {
+                    jenisHubungan.value = oldJenis;
+                }
+            }
+
+            arahRelasi.addEventListener('change', updateJenisHubungan);
+
+            updateJenisHubungan();
+        });
+    </script>
 </x-app-layout>

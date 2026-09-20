@@ -283,6 +283,11 @@ Route::middleware('auth')->group(function () {
                 '/undangan-keluarga',
                 [UndanganKeluargaController::class, 'store']
             )->name('undangan.store');
+
+            Route::delete(
+                '/undangan-keluarga/{id}/delete',
+                [UndanganKeluargaController::class, 'destroy']
+            )->name('undangan.destroy');
         });
 
 
