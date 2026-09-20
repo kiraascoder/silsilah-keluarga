@@ -6,7 +6,8 @@ use App\Models\Keluarga;
 use App\Models\PenggunaKeluarga;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
+
 use Illuminate\Support\Str;
 
 class KeluargaController extends Controller
@@ -19,31 +20,14 @@ class KeluargaController extends Controller
 
     public function pilih()
     {
-        $keluarga = Keluarga::whereHas(
-            'pengguna',
-            function ($query) {
+        $keluarga = Keluarga::whereHas('pengguna', function ($query) {
+            $query->where('pengguna_id', auth()->id());
+        })
+            ->where('status', 'aktif')
+            ->orderBy('nama_keluarga')
+            ->get();
 
-                $query
-                    ->where(
-                        'users.id',
-                        Auth::id()
-                    )
-                    ->where(
-                        'pengguna_keluarga.status',
-                        'aktif'
-                    );
-
-            }
-        )
-        ->aktif()
-        ->orderBy('nama_keluarga')
-        ->get();
-
-
-        return view(
-            'keluarga.pilih',
-            compact('keluarga')
-        );
+        return view('keluarga.pilih', compact('keluarga'));
     }
 
 
@@ -68,7 +52,6 @@ class KeluargaController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-
             'nama_keluarga' => [
                 'required',
                 'string',
@@ -85,120 +68,83 @@ class KeluargaController extends Controller
                 'nullable',
                 'string',
             ],
-
-            'foto' => [
-                'nullable',
-                'image',
-                'mimes:jpg,jpeg,png',
-                'max:2048',
-            ],
-
         ]);
 
+        $slug = Str::slug($data['nama_keluarga']);
 
-        $foto = null;
+        $baseSlug = $slug;
+        $counter = 1;
 
-
-        if ($request->hasFile('foto')) {
-
-            $foto = $request
-                ->file('foto')
-                ->store(
-                    'keluarga',
-                    'public'
-                );
+        while (
+            Keluarga::where('slug', $slug)->exists()
+        ) {
+            $slug = $baseSlug . '-' . $counter;
+            $counter++;
         }
 
+        do {
+            $kodeUndangan = strtoupper(
+                Str::random(10)
+            );
+        } while (
+            Keluarga::where(
+                'kode_undangan',
+                $kodeUndangan
+            )->exists()
+        );
 
-        $keluarga = Keluarga::create([
+        DB::transaction(function () use (
+            $data,
+            $slug,
+            $kodeUndangan,
+            &$keluarga
+        ) {
 
-            'nama_keluarga' =>
+            $keluarga = Keluarga::create([
+                'nama_keluarga' =>
                 $data['nama_keluarga'],
 
-            'slug' =>
-                Str::slug(
-                    $data['nama_keluarga']
-                )
-                . '-'
-                . Str::lower(
-                    Str::random(5)
-                ),
+                'slug' =>
+                $slug,
 
-            'asal_daerah' =>
+                'asal_daerah' =>
                 $data['asal_daerah'] ?? null,
 
-            'deskripsi' =>
+                'deskripsi' =>
                 $data['deskripsi'] ?? null,
 
-            'foto' =>
-                $foto,
+                'kode_undangan' =>
+                $kodeUndangan,
 
-            'kode_undangan' =>
-                Str::upper(
-                    Str::random(8)
-                ),
+                'dibuat_oleh' =>
+                auth()->id(),
 
-            'dibuat_oleh' =>
-                Auth::id(),
-
-            'status' =>
+                'status' =>
                 'aktif',
+            ]);
 
-        ]);
+            $keluarga->pengguna()->attach(
+                auth()->id(),
+                [
+                    'level_akses' =>
+                    'pemilik',
 
+                    'status' =>
+                    'aktif',
 
-        /*
-        |--------------------------------------------------------------------------
-        | Masukkan pembuat sebagai pemilik
-        |--------------------------------------------------------------------------
-        */
-
-        PenggunaKeluarga::create([
-
-            'keluarga_id' =>
-                $keluarga->id,
-
-            'pengguna_id' =>
-                Auth::id(),
-
-            'anggota_keluarga_id' =>
-                null,
-
-            'level_akses' =>
-                'pemilik',
-
-            'status' =>
-                'aktif',
-
-            'bergabung_pada' =>
-                now(),
-
-        ]);
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Set keluarga aktif
-        |--------------------------------------------------------------------------
-        */
-
-        session([
-            'keluarga_id' =>
-                $keluarga->id,
-
-            'keluarga_level_akses' =>
-                'pemilik',
-        ]);
-
+                    'bergabung_pada' =>
+                    now(),
+                ]
+            );
+        });
 
         return redirect()
-            ->route('dashboard')
+            ->route('keluarga.pilih')
             ->with(
                 'success',
-                'Rumpun keluarga berhasil dibuat.'
+                'Keluarga berhasil dibuat.'
             );
     }
-
 
     /*
     |--------------------------------------------------------------------------
@@ -238,10 +184,10 @@ class KeluargaController extends Controller
         session([
 
             'keluarga_id' =>
-                $keluarga->id,
+            $keluarga->id,
 
             'keluarga_level_akses' =>
-                $keanggotaan->level_akses,
+            $keanggotaan->level_akses,
 
         ]);
 

@@ -64,259 +64,61 @@ class RelasiOrangTuaAnakController extends Controller
 
     public function store(Request $request)
     {
-        $keluargaId = session('keluarga_id');
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Validasi input
-        |--------------------------------------------------------------------------
-        */
-
-        $data = $request->validate([
-
-            'orang_tua_id' => [
+        $validated = $request->validate([
+            'anggota_utama_id' => [
                 'required',
-                'integer',
+                'exists:anggota_keluarga,id',
             ],
 
-            'anak_id' => [
+            'arah_relasi' => [
                 'required',
-                'integer',
-                'different:orang_tua_id',
+                'in:orang_tua,anak',
             ],
 
             'jenis_hubungan' => [
                 'required',
-                'in:ayah,ibu',
+                'in:ayah,ibu,anak',
             ],
 
+            'anggota_id' => [
+                'required',
+                'exists:anggota_keluarga,id',
+                'different:anggota_utama_id',
+            ],
         ]);
 
-
         /*
-        |--------------------------------------------------------------------------
-        | Ambil orang tua
-        |--------------------------------------------------------------------------
-        */
+    |--------------------------------------------------------------------------
+    | Tentukan posisi hubungan
+    |--------------------------------------------------------------------------
+    */
 
-        $orangTua = AnggotaKeluarga::query()
-            ->where('keluarga_id', $keluargaId)
-            ->where('status_data', 'aktif')
-            ->where('id', $data['orang_tua_id'])
-            ->firstOrFail();
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Ambil anak
-        |--------------------------------------------------------------------------
-        */
-
-        $anak = AnggotaKeluarga::query()
-            ->where('keluarga_id', $keluargaId)
-            ->where('status_data', 'aktif')
-            ->where('id', $data['anak_id'])
-            ->firstOrFail();
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Validasi jenis hubungan berdasarkan jenis kelamin
-        |--------------------------------------------------------------------------
-        */
-
-        if (
-            $data['jenis_hubungan'] === 'ayah'
-            &&
-            $orangTua->jenis_kelamin !== 'laki-laki'
-        ) {
-
-            return back()
-                ->withInput()
-                ->with(
-                    'error',
-                    'Hubungan ayah hanya dapat diberikan kepada anggota laki-laki.'
-                );
+        if ($validated['arah_relasi'] === 'orang_tua') {
+            // Anggota yang dipilih adalah orang tua
+            $orangTuaId = $validated['anggota_id'];
+            $anakId = $validated['anggota_utama_id'];
+        } else {
+            // Anggota yang dipilih adalah anak
+            $orangTuaId = $validated['anggota_utama_id'];
+            $anakId = $validated['anggota_id'];
         }
 
-
-        if (
-            $data['jenis_hubungan'] === 'ibu'
-            &&
-            $orangTua->jenis_kelamin !== 'perempuan'
-        ) {
-
-            return back()
-                ->withInput()
-                ->with(
-                    'error',
-                    'Hubungan ibu hanya dapat diberikan kepada anggota perempuan.'
-                );
-        }
-
-
         /*
-        |--------------------------------------------------------------------------
-        | Cegah relasi yang sama
-        |--------------------------------------------------------------------------
-        */
-
-        $relasiSama = RelasiOrangTuaAnak::query()
-            ->where(
-                'orang_tua_id',
-                $orangTua->id
-            )
-            ->where(
-                'anak_id',
-                $anak->id
-            )
-            ->exists();
-
-
-        if ($relasiSama) {
-
-            return back()
-                ->withInput()
-                ->with(
-                    'error',
-                    'Hubungan orang tua dan anak tersebut sudah terdaftar.'
-                );
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Cegah anak memiliki dua ayah
-        |--------------------------------------------------------------------------
-        */
-
-        if (
-            $data['jenis_hubungan'] === 'ayah'
-        ) {
-
-            $sudahAdaAyah =
-                RelasiOrangTuaAnak::query()
-                    ->where(
-                        'anak_id',
-                        $anak->id
-                    )
-                    ->where(
-                        'jenis_hubungan',
-                        'ayah'
-                    )
-                    ->exists();
-
-
-            if ($sudahAdaAyah) {
-
-                return back()
-                    ->withInput()
-                    ->with(
-                        'error',
-                        'Anak tersebut sudah memiliki data ayah.'
-                    );
-            }
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Cegah anak memiliki dua ibu
-        |--------------------------------------------------------------------------
-        */
-
-        if (
-            $data['jenis_hubungan'] === 'ibu'
-        ) {
-
-            $sudahAdaIbu =
-                RelasiOrangTuaAnak::query()
-                    ->where(
-                        'anak_id',
-                        $anak->id
-                    )
-                    ->where(
-                        'jenis_hubungan',
-                        'ibu'
-                    )
-                    ->exists();
-
-
-            if ($sudahAdaIbu) {
-
-                return back()
-                    ->withInput()
-                    ->with(
-                        'error',
-                        'Anak tersebut sudah memiliki data ibu.'
-                    );
-            }
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Cegah siklus silsilah
-        |--------------------------------------------------------------------------
-        |
-        | Contoh yang tidak boleh:
-        |
-        | A -> B
-        | B -> C
-        | C -> A
-        |
-        */
-
-        if (
-            $this->menyebabkanSiklus(
-                $orangTua->id,
-                $anak->id,
-                $keluargaId
-            )
-        ) {
-
-            return back()
-                ->withInput()
-                ->with(
-                    'error',
-                    'Hubungan tersebut akan membentuk siklus pada silsilah keluarga.'
-                );
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Simpan
-        |--------------------------------------------------------------------------
-        */
+    |--------------------------------------------------------------------------
+    | Simpan relasi
+    |--------------------------------------------------------------------------
+    */
 
         RelasiOrangTuaAnak::create([
-
-            'orang_tua_id' =>
-                $orangTua->id,
-
-            'anak_id' =>
-                $anak->id,
-
-            'jenis_hubungan' =>
-                $data['jenis_hubungan'],
-
-            'dibuat_oleh' =>
-                auth()->id(),
-
+            'orang_tua_id' => $orangTuaId,
+            'anak_id' => $anakId,
+            'jenis_hubungan' => $validated['jenis_hubungan'],
+            'dibuat_oleh' => auth()->id(),
         ]);
 
-
         return redirect()
-            ->route(
-                'anggota.show',
-                $anak->id
-            )
-            ->with(
-                'success',
-                'Hubungan keluarga berhasil ditambahkan.'
-            );
+            ->route('anggota.show', $validated['anggota_utama_id'])
+            ->with('success', 'Hubungan keluarga berhasil ditambahkan.');
     }
 
 
@@ -384,7 +186,6 @@ class RelasiOrangTuaAnakController extends Controller
                             'keluarga_id',
                             $keluargaId
                         );
-
                     }
                 )
                 ->pluck('anak_id');

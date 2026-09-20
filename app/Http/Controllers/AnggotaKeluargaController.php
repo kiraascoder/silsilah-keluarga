@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AnggotaKeluarga;
+use App\Models\Keluarga;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -14,47 +15,148 @@ class AnggotaKeluargaController extends Controller
     |--------------------------------------------------------------------------
     */
 
-    public function index()
+    public function index(Request $request)
     {
         $keluargaId = session('keluarga_id');
 
-        $anggota = AnggotaKeluarga::where(
-            'keluarga_id',
-            $keluargaId
-        )
-            ->where('status_data', 'aktif')
+        if (!$keluargaId) {
+            return redirect()
+                ->route('keluarga.pilih')
+                ->with(
+                    'error',
+                    'Silakan pilih keluarga terlebih dahulu.'
+                );
+        }
+
+        $query = AnggotaKeluarga::query()
+            ->where('keluarga_id', $keluargaId)
+            ->where('status_data', 'aktif');
+
+        /*
+    |--------------------------------------------------------------------------
+    | Pencarian
+    |--------------------------------------------------------------------------
+    */
+
+        if ($request->filled('search')) {
+
+            $search = $request->input('search');
+
+            $query->where(function ($q) use ($search) {
+
+                $q->where(
+                    'nama_lengkap',
+                    'like',
+                    "%{$search}%"
+                );
+
+                $q->orWhere(
+                    'nama_panggilan',
+                    'like',
+                    "%{$search}%"
+                );
+            });
+        }
+
+
+        /*
+    |--------------------------------------------------------------------------
+    | Filter Jenis Kelamin
+    |--------------------------------------------------------------------------
+    */
+
+        if ($request->filled('jenis_kelamin')) {
+
+            $query->where(
+                'jenis_kelamin',
+                $request->input('jenis_kelamin')
+            );
+        }
+
+
+        /*
+    |--------------------------------------------------------------------------
+    | Filter Generasi
+    |--------------------------------------------------------------------------
+    */
+
+        if ($request->filled('generasi')) {
+
+            $query->where(
+                'generasi',
+                $request->input('generasi')
+            );
+        }
+
+
+        /*
+    |--------------------------------------------------------------------------
+    | Data Anggota
+    |--------------------------------------------------------------------------
+    */
+
+        $anggota = $query
             ->orderBy('generasi')
             ->orderBy('nama_lengkap')
-            ->get();
+            ->paginate(10)
+            ->withQueryString();
 
+
+        /*
+    |--------------------------------------------------------------------------
+    | Daftar Generasi
+    |--------------------------------------------------------------------------
+    */
+
+        $daftarGenerasi = AnggotaKeluarga::query()
+            ->where('keluarga_id', $keluargaId)
+            ->where('status_data', 'aktif')
+            ->whereNotNull('generasi')
+            ->distinct()
+            ->orderBy('generasi')
+            ->pluck('generasi');
+
+
+        /*
+    |--------------------------------------------------------------------------
+    | Return View
+    |--------------------------------------------------------------------------
+    */
+
+        return view('anggota.index', [
+            'anggota' => $anggota,
+            'daftarGenerasi' => $daftarGenerasi,
+        ]);
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Tambah
+    |--------------------------------------------------------------------------
+    */
+
+    public function create()
+    {
         return view(
-            'anggota.index',
-            compact('anggota')
+            'anggota.create'
         );
     }
 
 
     /*
     |--------------------------------------------------------------------------
-    | Form Tambah
+    | Simpan
     |--------------------------------------------------------------------------
     */
 
-    public function create()
-    {
-        return view('anggota.create');
-    }
+    public function store(
+        Request $request
+    ) {
 
+        $keluargaId =
+            session('keluarga_id');
 
-    /*
-    |--------------------------------------------------------------------------
-    | Simpan Anggota
-    |--------------------------------------------------------------------------
-    */
-
-    public function store(Request $request)
-    {
-        $keluargaId = session('keluarga_id');
 
         $data = $request->validate([
 
@@ -79,6 +181,7 @@ class AnggotaKeluargaController extends Controller
             'tanggal_lahir' => [
                 'nullable',
                 'date',
+                'before_or_equal:today',
             ],
 
             'jenis_kelamin' => [
@@ -99,8 +202,7 @@ class AnggotaKeluargaController extends Controller
 
             'status' => [
                 'nullable',
-                'string',
-                'max:50',
+                'in:hidup,meninggal',
             ],
 
             'foto' => [
@@ -113,19 +215,34 @@ class AnggotaKeluargaController extends Controller
         ]);
 
 
-        $data['keluarga_id'] = $keluargaId;
-        $data['status_data'] = 'aktif';
+        /*
+        |--------------------------------------------------------------------------
+        | Data Sistem
+        |--------------------------------------------------------------------------
+        */
+
+        $data['keluarga_id'] =
+            $keluargaId;
+
+        $data['status_data'] =
+            'aktif';
+
+        $data['status'] =
+            $data['status'] ?? 'hidup';
 
 
         /*
         |--------------------------------------------------------------------------
-        | Upload Foto
+        | Foto
         |--------------------------------------------------------------------------
         */
 
-        if ($request->hasFile('foto')) {
+        if (
+            $request->hasFile('foto')
+        ) {
 
-            $data['foto'] = $request
+            $data['foto'] =
+                $request
                 ->file('foto')
                 ->store(
                     'anggota',
@@ -134,7 +251,16 @@ class AnggotaKeluargaController extends Controller
         }
 
 
-        $anggota = AnggotaKeluarga::create($data);
+        /*
+        |--------------------------------------------------------------------------
+        | Simpan
+        |--------------------------------------------------------------------------
+        */
+
+        $anggota =
+            AnggotaKeluarga::create(
+                $data
+            );
 
 
         return redirect()
@@ -151,19 +277,30 @@ class AnggotaKeluargaController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | Detail Anggota
+    | Detail
     |--------------------------------------------------------------------------
     */
 
     public function show($id)
     {
-        $keluargaId = session('keluarga_id');
+        $keluargaId =
+            session('keluarga_id');
 
-        $anggota = AnggotaKeluarga::where(
-            'keluarga_id',
-            $keluargaId
-        )
-            ->where('id', $id)
+
+        $anggota =
+            AnggotaKeluarga::query()
+            ->where(
+                'keluarga_id',
+                $keluargaId
+            )
+            ->where(
+                'id',
+                $id
+            )
+            ->where(
+                'status_data',
+                'aktif'
+            )
             ->with([
                 'orangTua',
                 'anak',
@@ -182,19 +319,30 @@ class AnggotaKeluargaController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | Form Edit
+    | Edit
     |--------------------------------------------------------------------------
     */
 
     public function edit($id)
     {
-        $keluargaId = session('keluarga_id');
+        $keluargaId =
+            session('keluarga_id');
 
-        $anggota = AnggotaKeluarga::where(
-            'keluarga_id',
-            $keluargaId
-        )
-            ->where('id', $id)
+
+        $anggota =
+            AnggotaKeluarga::query()
+            ->where(
+                'keluarga_id',
+                $keluargaId
+            )
+            ->where(
+                'id',
+                $id
+            )
+            ->where(
+                'status_data',
+                'aktif'
+            )
             ->firstOrFail();
 
 
@@ -207,7 +355,7 @@ class AnggotaKeluargaController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | Update Anggota
+    | Update
     |--------------------------------------------------------------------------
     */
 
@@ -216,13 +364,24 @@ class AnggotaKeluargaController extends Controller
         $id
     ) {
 
-        $keluargaId = session('keluarga_id');
+        $keluargaId =
+            session('keluarga_id');
 
-        $anggota = AnggotaKeluarga::where(
-            'keluarga_id',
-            $keluargaId
-        )
-            ->where('id', $id)
+
+        $anggota =
+            AnggotaKeluarga::query()
+            ->where(
+                'keluarga_id',
+                $keluargaId
+            )
+            ->where(
+                'id',
+                $id
+            )
+            ->where(
+                'status_data',
+                'aktif'
+            )
             ->firstOrFail();
 
 
@@ -249,6 +408,7 @@ class AnggotaKeluargaController extends Controller
             'tanggal_lahir' => [
                 'nullable',
                 'date',
+                'before_or_equal:today',
             ],
 
             'jenis_kelamin' => [
@@ -269,8 +429,7 @@ class AnggotaKeluargaController extends Controller
 
             'status' => [
                 'nullable',
-                'string',
-                'max:50',
+                'in:hidup,meninggal',
             ],
 
             'foto' => [
@@ -283,7 +442,19 @@ class AnggotaKeluargaController extends Controller
         ]);
 
 
-        if ($request->hasFile('foto')) {
+        $data['status'] =
+            $data['status'] ?? 'hidup';
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Foto Baru
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            $request->hasFile('foto')
+        ) {
 
             if (
                 $anggota->foto &&
@@ -291,13 +462,15 @@ class AnggotaKeluargaController extends Controller
                     $anggota->foto
                 )
             ) {
+
                 Storage::disk('public')->delete(
                     $anggota->foto
                 );
             }
 
 
-            $data['foto'] = $request
+            $data['foto'] =
+                $request
                 ->file('foto')
                 ->store(
                     'anggota',
@@ -306,7 +479,15 @@ class AnggotaKeluargaController extends Controller
         }
 
 
-        $anggota->update($data);
+        /*
+        |--------------------------------------------------------------------------
+        | Update
+        |--------------------------------------------------------------------------
+        */
+
+        $anggota->update(
+            $data
+        );
 
 
         return redirect()
@@ -323,42 +504,77 @@ class AnggotaKeluargaController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | Anggota Keluar
+    | Nonaktifkan
     |--------------------------------------------------------------------------
     */
 
     public function destroy($id)
     {
-        $keluargaId = session('keluarga_id');
+        $keluargaId =
+            session('keluarga_id');
 
-        $anggota = AnggotaKeluarga::where(
-            'keluarga_id',
-            $keluargaId
-        )
-            ->where('id', $id)
+
+        $anggota =
+            AnggotaKeluarga::query()
+            ->where(
+                'keluarga_id',
+                $keluargaId
+            )
+            ->where(
+                'id',
+                $id
+            )
+            ->where(
+                'status_data',
+                'aktif'
+            )
             ->firstOrFail();
+
+
+        $keluarga =
+            Keluarga::findOrFail(
+                $keluargaId
+            );
 
 
         /*
         |--------------------------------------------------------------------------
-        | Soft Delete Logis
+        | Kepala Keluarga
         |--------------------------------------------------------------------------
-        |
-        | Data tidak dihapus dari database.
-        | Hanya dibuat tidak aktif.
-        |
+        */
+
+        if (
+            (int) $keluarga->kepala_keluarga_id ===
+            (int) $anggota->id
+        ) {
+
+            return back()
+                ->with(
+                    'error',
+                    'Kepala keluarga tidak dapat dinonaktifkan sebelum kepala keluarga baru ditentukan.'
+                );
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Nonaktifkan Data
+        |--------------------------------------------------------------------------
         */
 
         $anggota->update([
-            'status_data' => 'tidak_aktif',
+            'status_data' =>
+            'tidak_aktif',
         ]);
 
 
         return redirect()
-            ->route('anggota.index')
+            ->route(
+                'anggota.index'
+            )
             ->with(
                 'success',
-                'Anggota berhasil dikeluarkan dari daftar aktif.'
+                'Anggota berhasil dinonaktifkan.'
             );
     }
 }

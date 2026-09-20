@@ -7,6 +7,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RelasiOrangTuaAnakController;
 use App\Http\Controllers\RelasiPasanganController;
 use App\Http\Controllers\UndanganKeluargaController;
+use App\Models\AnggotaKeluarga;
 use Illuminate\Support\Facades\Route;
 
 
@@ -141,15 +142,11 @@ Route::middleware('auth')->group(function () {
         | Dashboard
         |--------------------------------------------------------------------------
         */
+        Route::get('/dashboard', function () {
+            $total_anggota = AnggotaKeluarga::count();
 
-        Route::get(
-            '/dashboard',
-            function () {
-
-                return view('dashboard');
-            }
-        )->name('dashboard');
-
+            return view('dashboard', compact('total_anggota'));
+        })->name('dashboard');
 
         /*
         |--------------------------------------------------------------------------

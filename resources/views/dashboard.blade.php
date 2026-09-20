@@ -40,7 +40,7 @@
                     </p>
 
                     <p class="text-3xl font-bold">
-                        0
+                        {{ $total_anggota }}
                     </p>
 
                     <a href="{{ route('anggota.index') }}" class="text-sm text-blue-600 hover:underline">

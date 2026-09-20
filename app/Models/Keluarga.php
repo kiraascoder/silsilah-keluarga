@@ -13,30 +13,15 @@ class Keluarga extends Model
 
     protected $fillable = [
         'nama_keluarga',
+        'slug',
+        'asal_daerah',
         'deskripsi',
-        'kepala_keluarga_id',
+        'foto',
+        'kode_undangan',
         'dibuat_oleh',
+        'kepala_keluarga_id',
+        'status',
     ];
-
-    /*
-    |--------------------------------------------------------------------------
-    | Anggota Keluarga
-    |--------------------------------------------------------------------------
-    */
-
-    public function anggota()
-    {
-        return $this->hasMany(
-            AnggotaKeluarga::class,
-            'keluarga_id'
-        );
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Pengguna Keluarga
-    |--------------------------------------------------------------------------
-    */
 
     public function pengguna()
     {
@@ -46,47 +31,20 @@ class Keluarga extends Model
             'keluarga_id',
             'pengguna_id'
         )->withPivot([
-            'id',
             'anggota_keluarga_id',
             'level_akses',
             'status',
             'bergabung_pada',
-        ])->withTimestamps();
+        ]);
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Data Keanggotaan
-    |--------------------------------------------------------------------------
-    */
-
-    public function dataPengguna()
+    public function anggota()
     {
         return $this->hasMany(
-            PenggunaKeluarga::class,
+            AnggotaKeluarga::class,
             'keluarga_id'
         );
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Undangan
-    |--------------------------------------------------------------------------
-    */
-
-    public function undangan()
-    {
-        return $this->hasMany(
-            UndanganKeluarga::class,
-            'keluarga_id'
-        );
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Kepala Keluarga
-    |--------------------------------------------------------------------------
-    */
 
     public function kepalaKeluarga()
     {
@@ -96,17 +54,15 @@ class Keluarga extends Model
         );
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Pembuat
-    |--------------------------------------------------------------------------
-    */
-
     public function pembuat()
     {
         return $this->belongsTo(
             User::class,
             'dibuat_oleh'
         );
+    }
+    public function scopeAktif($query)
+    {
+        return $query->where('status', 'aktif');
     }
 }
