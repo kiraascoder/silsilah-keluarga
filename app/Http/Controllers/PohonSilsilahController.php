@@ -11,42 +11,15 @@ class PohonSilsilahController extends Controller
     {
         $keluargaId = session('keluarga_id');
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Keluarga aktif
-        |--------------------------------------------------------------------------
-        */
-
-        $keluargaAktif = Keluarga::find(
-            $keluargaId
-        );
-
+        $keluargaAktif = Keluarga::find($keluargaId);
 
         if (!$keluargaAktif) {
-
-            abort(
-                404,
-                'Keluarga tidak ditemukan.'
-            );
+            abort(404, 'Keluarga tidak ditemukan.');
         }
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Anggota keluarga
-        |--------------------------------------------------------------------------
-        */
-
         $anggota = AnggotaKeluarga::query()
-            ->where(
-                'keluarga_id',
-                $keluargaId
-            )
-            ->where(
-                'status_data',
-                'aktif'
-            )
+            ->where('keluarga_id', $keluargaId)
+            ->where('status_data', 'aktif')
             ->with([
                 'orangTua',
                 'anak',
@@ -57,206 +30,194 @@ class PohonSilsilahController extends Controller
             ->orderBy('nama_lengkap')
             ->get();
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Tentukan anggota utama
-        |--------------------------------------------------------------------------
-        */
-
         $anggotaUtama = null;
 
-
-        if (
-            $keluargaAktif->kepala_keluarga_id
-        ) {
-
-            $anggotaUtama = $anggota
-                ->firstWhere(
-                    'id',
-                    $keluargaAktif
-                        ->kepala_keluarga_id
-                );
+        if ($keluargaAktif->kepala_keluarga_id) {
+            $anggotaUtama = $anggota->firstWhere(
+                'id',
+                $keluargaAktif->kepala_keluarga_id
+            );
         }
 
-
         if (!$anggotaUtama) {
-
             $anggotaUtama = $anggota
                 ->sortBy('generasi')
                 ->first();
         }
 
-
         /*
         |--------------------------------------------------------------------------
-        | Data pohon
+        | Map semua anggota
         |--------------------------------------------------------------------------
         */
 
-        $dataPohon = $anggota
-            ->map(function (
-                AnggotaKeluarga $item
-            ) {
+        $anggotaMap = $anggota->keyBy('id');
 
-                /*
-                |--------------------------------------------------------------------------
-                | Orang tua
-                |--------------------------------------------------------------------------
-                */
+        /*
+        |--------------------------------------------------------------------------
+        | Bentuk data pasangan
+        |--------------------------------------------------------------------------
+        */
 
-                $orangTua =
-                    $item->orangTua
-                        ->map(function ($orang) {
+        $pasanganMap = [];
 
-                            return [
-                                'id' =>
-                                    $orang->id,
+        foreach ($anggota as $item) {
+            $pasangan = null;
 
-                                'nama' =>
-                                    $orang->nama_lengkap,
+            $relasiPertama = $item
+                ->relasiPasanganPertama
+                ->first();
 
-                                'hubungan' =>
-                                    $orang
-                                        ->pivot
-                                        ->jenis_hubungan,
-                            ];
+            if ($relasiPertama) {
+                $pasangan = $relasiPertama->anggotaKedua;
+            }
 
-                        })
-                        ->values();
+            if (!$pasangan) {
+                $relasiKedua = $item
+                    ->relasiPasanganKedua
+                    ->first();
 
-
-                /*
-                |--------------------------------------------------------------------------
-                | Anak
-                |--------------------------------------------------------------------------
-                */
-
-                $anak =
-                    $item->anak
-                        ->map(function ($anak) {
-
-                            return [
-                                'id' =>
-                                    $anak->id,
-
-                                'nama' =>
-                                    $anak->nama_lengkap,
-
-                                'hubungan' =>
-                                    $anak
-                                        ->pivot
-                                        ->jenis_hubungan,
-                            ];
-
-                        })
-                        ->values();
-
-
-                /*
-                |--------------------------------------------------------------------------
-                | Pasangan
-                |--------------------------------------------------------------------------
-                */
-
-                $pasangan = null;
-
-
-                $relasiPertama =
-                    $item
-                        ->relasiPasanganPertama
-                        ->first();
-
-
-                if ($relasiPertama) {
-
-                    $pasangan =
-                        $relasiPertama
-                            ->anggotaKedua;
+                if ($relasiKedua) {
+                    $pasangan = $relasiKedua->anggotaPertama;
                 }
+            }
 
+            if ($pasangan) {
+                $pasanganMap[$item->id] = $pasangan->id;
+                $pasanganMap[$pasangan->id] = $item->id;
+            }
+        }
 
-                if (!$pasangan) {
+        /*
+        |--------------------------------------------------------------------------
+        | Bentuk data pohon
+        |--------------------------------------------------------------------------
+        */
 
-                    $relasiKedua =
-                        $item
-                            ->relasiPasanganKedua
-                            ->first();
+        $dataPohon = $anggota->map(function ($item) use (
+            $pasanganMap,
+            $anggotaMap
+        ) {
+            /*
+            |--------------------------------------------------------------------------
+            | Pasangan
+            |--------------------------------------------------------------------------
+            */
 
+            $pasangan = null;
 
-                    if ($relasiKedua) {
+            if (isset($pasanganMap[$item->id])) {
+                $pasangan = $anggotaMap->get(
+                    $pasanganMap[$item->id]
+                );
+            }
 
-                        $pasangan =
-                            $relasiKedua
-                                ->anggotaPertama;
-                    }
+            /*
+            |--------------------------------------------------------------------------
+            | Anak
+            |--------------------------------------------------------------------------
+            */
+
+            $anakIds = collect();
+
+            foreach ($item->anak as $anak) {
+                $anakIds->push($anak->id);
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Jika memiliki pasangan,
+            | gabungkan anak pasangan juga.
+            |--------------------------------------------------------------------------
+            */
+
+            if ($pasangan) {
+                foreach ($pasangan->anak as $anak) {
+                    $anakIds->push($anak->id);
                 }
+            }
 
+            $anakIds = $anakIds
+                ->unique()
+                ->sortBy(function ($id) use ($anggotaMap) {
+                    $anak = $anggotaMap->get($id);
 
-                /*
-                |--------------------------------------------------------------------------
-                | Return
-                |--------------------------------------------------------------------------
-                */
+                    return [
+                        $anak?->generasi ?? 999,
+                        $anak?->nama_lengkap ?? '',
+                    ];
+                })
+                ->values();
 
-                return [
+            /*
+            |--------------------------------------------------------------------------
+            | Orang tua
+            |--------------------------------------------------------------------------
+            */
 
-                    'id' =>
-                        $item->id,
+            $orangTua = $item->orangTua
+                ->map(function ($orang) {
+                    return [
+                        'id' => $orang->id,
+                        'nama' => $orang->nama_lengkap,
+                        'hubungan' => $orang->pivot->jenis_hubungan ?? null,
+                    ];
+                })
+                ->values();
 
-                    'nama' =>
-                        $item->nama_lengkap,
+            /*
+            |--------------------------------------------------------------------------
+            | Data pasangan
+            |--------------------------------------------------------------------------
+            */
 
-                    'panggilan' =>
-                        $item->nama_panggilan,
+            $dataPasangan = null;
 
-                    'jenis_kelamin' =>
-                        $item->jenis_kelamin,
-
-                    'generasi' =>
-                        $item->generasi,
-
-                    'status' =>
-                        $item->status,
-
-                    'foto' =>
-                        $item->foto
-                            ? asset(
-                                'storage/' .
-                                $item->foto
-                            )
-                            : null,
-
-                    'orang_tua' =>
-                        $orangTua,
-
-                    'anak' =>
-                        $anak,
-
-                    'pasangan' =>
-                        $pasangan
-                            ? [
-                                'id' =>
-                                    $pasangan->id,
-
-                                'nama' =>
-                                    $pasangan
-                                        ->nama_lengkap,
-
-                                'foto' =>
-                                    $pasangan->foto
-                                        ? asset(
-                                            'storage/' .
-                                            $pasangan->foto
-                                        )
-                                        : null,
-                            ]
-                            : null,
-
+            if ($pasangan) {
+                $dataPasangan = [
+                    'id' => $pasangan->id,
+                    'nama' => $pasangan->nama_lengkap,
+                    'panggilan' => $pasangan->nama_panggilan,
+                    'jenis_kelamin' => $pasangan->jenis_kelamin,
+                    'generasi' => $pasangan->generasi,
+                    'foto' => $pasangan->foto
+                        ? asset('storage/' . $pasangan->foto)
+                        : null,
                 ];
-            })
-            ->values();
+            }
 
+            /*
+            |--------------------------------------------------------------------------
+            | Return
+            |--------------------------------------------------------------------------
+            */
+
+            return [
+                'id' => $item->id,
+
+                'nama' => $item->nama_lengkap,
+
+                'panggilan' => $item->nama_panggilan,
+
+                'jenis_kelamin' => $item->jenis_kelamin,
+
+                'generasi' => $item->generasi,
+
+                'status' => $item->status,
+
+                'foto' => $item->foto
+                    ? asset('storage/' . $item->foto)
+                    : null,
+
+                'orang_tua' => $orangTua,
+
+                'anak_ids' => $anakIds,
+
+                'pasangan_id' => $pasangan?->id,
+
+                'pasangan' => $dataPasangan,
+            ];
+        })->values();
 
         return view(
             'pohon.index',

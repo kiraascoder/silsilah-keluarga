@@ -29,14 +29,16 @@ class AnggotaKeluargaController extends Controller
         }
 
         $query = AnggotaKeluarga::query()
-            ->where('keluarga_id', $keluargaId)
-            ->where('status_data', 'aktif');
+            ->where(
+                'keluarga_id',
+                $keluargaId
+            );
 
         /*
-    |--------------------------------------------------------------------------
-    | Pencarian
-    |--------------------------------------------------------------------------
-    */
+        |--------------------------------------------------------------------------
+        | Pencarian
+        |--------------------------------------------------------------------------
+        */
 
         if ($request->filled('search')) {
 
@@ -58,12 +60,11 @@ class AnggotaKeluargaController extends Controller
             });
         }
 
-
         /*
-    |--------------------------------------------------------------------------
-    | Filter Jenis Kelamin
-    |--------------------------------------------------------------------------
-    */
+        |--------------------------------------------------------------------------
+        | Filter Jenis Kelamin
+        |--------------------------------------------------------------------------
+        */
 
         if ($request->filled('jenis_kelamin')) {
 
@@ -73,12 +74,11 @@ class AnggotaKeluargaController extends Controller
             );
         }
 
-
         /*
-    |--------------------------------------------------------------------------
-    | Filter Generasi
-    |--------------------------------------------------------------------------
-    */
+        |--------------------------------------------------------------------------
+        | Filter Generasi
+        |--------------------------------------------------------------------------
+        */
 
         if ($request->filled('generasi')) {
 
@@ -88,12 +88,25 @@ class AnggotaKeluargaController extends Controller
             );
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Filter Status Data
+        |--------------------------------------------------------------------------
+        */
+
+        if ($request->filled('status_data')) {
+
+            $query->where(
+                'status_data',
+                $request->input('status_data')
+            );
+        }
 
         /*
-    |--------------------------------------------------------------------------
-    | Data Anggota
-    |--------------------------------------------------------------------------
-    */
+        |--------------------------------------------------------------------------
+        | Data Anggota
+        |--------------------------------------------------------------------------
+        */
 
         $anggota = $query
             ->orderBy('generasi')
@@ -101,27 +114,27 @@ class AnggotaKeluargaController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-
         /*
-    |--------------------------------------------------------------------------
-    | Daftar Generasi
-    |--------------------------------------------------------------------------
-    */
+        |--------------------------------------------------------------------------
+        | Daftar Generasi
+        |--------------------------------------------------------------------------
+        */
 
         $daftarGenerasi = AnggotaKeluarga::query()
-            ->where('keluarga_id', $keluargaId)
-            ->where('status_data', 'aktif')
+            ->where(
+                'keluarga_id',
+                $keluargaId
+            )
             ->whereNotNull('generasi')
             ->distinct()
             ->orderBy('generasi')
             ->pluck('generasi');
 
-
         /*
-    |--------------------------------------------------------------------------
-    | Return View
-    |--------------------------------------------------------------------------
-    */
+        |--------------------------------------------------------------------------
+        | Return
+        |--------------------------------------------------------------------------
+        */
 
         return view('anggota.index', [
             'anggota' => $anggota,
@@ -157,6 +170,14 @@ class AnggotaKeluargaController extends Controller
         $keluargaId =
             session('keluarga_id');
 
+        if (!$keluargaId) {
+            return redirect()
+                ->route('keluarga.pilih')
+                ->with(
+                    'error',
+                    'Silakan pilih keluarga terlebih dahulu.'
+                );
+        }
 
         $data = $request->validate([
 
@@ -211,9 +232,7 @@ class AnggotaKeluargaController extends Controller
                 'mimes:jpg,jpeg,png',
                 'max:2048',
             ],
-
         ]);
-
 
         /*
         |--------------------------------------------------------------------------
@@ -230,16 +249,13 @@ class AnggotaKeluargaController extends Controller
         $data['status'] =
             $data['status'] ?? 'hidup';
 
-
         /*
         |--------------------------------------------------------------------------
         | Foto
         |--------------------------------------------------------------------------
         */
 
-        if (
-            $request->hasFile('foto')
-        ) {
+        if ($request->hasFile('foto')) {
 
             $data['foto'] =
                 $request
@@ -249,7 +265,6 @@ class AnggotaKeluargaController extends Controller
                     'public'
                 );
         }
-
 
         /*
         |--------------------------------------------------------------------------
@@ -261,7 +276,6 @@ class AnggotaKeluargaController extends Controller
             AnggotaKeluarga::create(
                 $data
             );
-
 
         return redirect()
             ->route(
@@ -286,9 +300,26 @@ class AnggotaKeluargaController extends Controller
         $keluargaId =
             session('keluarga_id');
 
+        if (!$keluargaId) {
+            return redirect()
+                ->route('keluarga.pilih')
+                ->with(
+                    'error',
+                    'Silakan pilih keluarga terlebih dahulu.'
+                );
+        }
 
-        $anggota =
-            AnggotaKeluarga::query()
+        /*
+        |--------------------------------------------------------------------------
+        | Ambil anggota
+        |--------------------------------------------------------------------------
+        |
+        | Tidak menggunakan where status_data aktif.
+        | Anggota nonaktif tetap dapat dibuka.
+        |
+        */
+
+        $anggota = AnggotaKeluarga::query()
             ->where(
                 'keluarga_id',
                 $keluargaId
@@ -297,10 +328,6 @@ class AnggotaKeluargaController extends Controller
                 'id',
                 $id
             )
-            ->where(
-                'status_data',
-                'aktif'
-            )
             ->with([
                 'orangTua',
                 'anak',
@@ -308,7 +335,6 @@ class AnggotaKeluargaController extends Controller
                 'relasiPasanganKedua.anggotaPertama',
             ])
             ->firstOrFail();
-
 
         return view(
             'anggota.show',
@@ -328,9 +354,7 @@ class AnggotaKeluargaController extends Controller
         $keluargaId =
             session('keluarga_id');
 
-
-        $anggota =
-            AnggotaKeluarga::query()
+        $anggota = AnggotaKeluarga::query()
             ->where(
                 'keluarga_id',
                 $keluargaId
@@ -339,12 +363,7 @@ class AnggotaKeluargaController extends Controller
                 'id',
                 $id
             )
-            ->where(
-                'status_data',
-                'aktif'
-            )
             ->firstOrFail();
-
 
         return view(
             'anggota.edit',
@@ -367,9 +386,7 @@ class AnggotaKeluargaController extends Controller
         $keluargaId =
             session('keluarga_id');
 
-
-        $anggota =
-            AnggotaKeluarga::query()
+        $anggota = AnggotaKeluarga::query()
             ->where(
                 'keluarga_id',
                 $keluargaId
@@ -378,12 +395,7 @@ class AnggotaKeluargaController extends Controller
                 'id',
                 $id
             )
-            ->where(
-                'status_data',
-                'aktif'
-            )
             ->firstOrFail();
-
 
         $data = $request->validate([
 
@@ -438,13 +450,10 @@ class AnggotaKeluargaController extends Controller
                 'mimes:jpg,jpeg,png',
                 'max:2048',
             ],
-
         ]);
-
 
         $data['status'] =
             $data['status'] ?? 'hidup';
-
 
         /*
         |--------------------------------------------------------------------------
@@ -452,9 +461,7 @@ class AnggotaKeluargaController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        if (
-            $request->hasFile('foto')
-        ) {
+        if ($request->hasFile('foto')) {
 
             if (
                 $anggota->foto &&
@@ -462,12 +469,10 @@ class AnggotaKeluargaController extends Controller
                     $anggota->foto
                 )
             ) {
-
                 Storage::disk('public')->delete(
                     $anggota->foto
                 );
             }
-
 
             $data['foto'] =
                 $request
@@ -478,7 +483,6 @@ class AnggotaKeluargaController extends Controller
                 );
         }
 
-
         /*
         |--------------------------------------------------------------------------
         | Update
@@ -488,7 +492,6 @@ class AnggotaKeluargaController extends Controller
         $anggota->update(
             $data
         );
-
 
         return redirect()
             ->route(
@@ -513,9 +516,7 @@ class AnggotaKeluargaController extends Controller
         $keluargaId =
             session('keluarga_id');
 
-
-        $anggota =
-            AnggotaKeluarga::query()
+        $anggota = AnggotaKeluarga::query()
             ->where(
                 'keluarga_id',
                 $keluargaId
@@ -530,12 +531,10 @@ class AnggotaKeluargaController extends Controller
             )
             ->firstOrFail();
 
-
         $keluarga =
             Keluarga::findOrFail(
                 $keluargaId
             );
-
 
         /*
         |--------------------------------------------------------------------------
@@ -555,7 +554,6 @@ class AnggotaKeluargaController extends Controller
                 );
         }
 
-
         /*
         |--------------------------------------------------------------------------
         | Nonaktifkan Data
@@ -567,7 +565,6 @@ class AnggotaKeluargaController extends Controller
             'tidak_aktif',
         ]);
 
-
         return redirect()
             ->route(
                 'anggota.index'
@@ -575,6 +572,55 @@ class AnggotaKeluargaController extends Controller
             ->with(
                 'success',
                 'Anggota berhasil dinonaktifkan.'
+            );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Aktifkan Kembali
+    |--------------------------------------------------------------------------
+    */
+
+    public function aktifkan($id)
+    {
+        $keluargaId =
+            session('keluarga_id');
+
+        $anggota = AnggotaKeluarga::query()
+            ->where(
+                'keluarga_id',
+                $keluargaId
+            )
+            ->where(
+                'id',
+                $id
+            )
+            ->where(
+                'status_data',
+                'tidak_aktif'
+            )
+            ->firstOrFail();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Aktifkan kembali
+        |--------------------------------------------------------------------------
+        */
+
+        $anggota->update([
+            'status_data' =>
+            'aktif',
+        ]);
+
+        return redirect()
+            ->route(
+                'anggota.show',
+                $anggota->id
+            )
+            ->with(
+                'success',
+                'Anggota berhasil diaktifkan kembali.'
             );
     }
 }

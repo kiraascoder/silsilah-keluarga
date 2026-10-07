@@ -143,11 +143,16 @@ Route::middleware('auth')->group(function () {
         |--------------------------------------------------------------------------
         */
         Route::get('/dashboard', function () {
-            $total_anggota = AnggotaKeluarga::count();
+
+            $keluargaId = session('keluarga_id');
+
+            $total_anggota = AnggotaKeluarga::query()
+                ->where('keluarga_id', $keluargaId)
+                ->where('status_data', 'aktif')
+                ->count();
 
             return view('dashboard', compact('total_anggota'));
         })->name('dashboard');
-
         /*
         |--------------------------------------------------------------------------
         | Pohon Silsilah
@@ -182,6 +187,11 @@ Route::middleware('auth')->group(function () {
             'hak.akses:pemilik,editor'
         )->group(function () {
 
+        
+            Route::patch(
+                '/anggota-keluarga/{id}/aktifkan',
+                [AnggotaKeluargaController::class, 'aktifkan']
+            )->name('anggota.aktifkan');
 
             Route::get(
                 '/anggota-keluarga/tambah',

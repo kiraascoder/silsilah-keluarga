@@ -276,6 +276,34 @@
         LOGOUT
     ========================================================== --}}
 
+    {{-- =========================================================
+    GANTI KELUARGA
+========================================================== --}}
+    <div class="border-t border-slate-200 p-4">
+
+        <a href="{{ route('keluarga.pilih') }}"
+            class="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm
+               font-medium text-slate-600 transition
+               hover:bg-blue-50 hover:text-blue-600">
+
+            {{-- Switch / Repeat Icon --}}
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 shrink-0"
+                aria-hidden="true">
+                <path d="M17 1l4 4-4 4" />
+                <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+                <path d="M7 23l-4-4 4-4" />
+                <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+            </svg>
+
+            <span>
+                Ganti Keluarga
+            </span>
+
+        </a>
+
+    </div>
+    
     <div class="shrink-0 border-t border-slate-200 p-4">
 
         <form method="POST" action="{{ route('logout') }}">

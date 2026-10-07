@@ -25,12 +25,7 @@
             </div>
 
 
-            <div
-                class="flex flex-col
-                       md:flex-row
-                       md:items-center
-                       md:justify-between
-                       gap-4">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
 
                 <div>
 
@@ -48,17 +43,7 @@
                 <div class="flex items-center gap-3">
 
                     <a href="{{ route('anggota.edit', $anggota->id) }}"
-                        class="inline-flex
-                               items-center
-                               gap-2
-                               bg-blue-600
-                               hover:bg-blue-700
-                               text-white
-                               rounded-xl
-                               px-4
-                               py-2.5
-                               text-sm
-                               font-semibold">
+                        class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-4 py-2.5 text-sm font-semibold">
 
                         <i data-lucide="pencil" class="w-4 h-4"></i>
 
@@ -73,66 +58,31 @@
         </div>
 
 
-
         {{-- =========================================================
             ALERT
         ========================================================== --}}
 
         @if (session('success'))
-            <div
-                class="mb-6
-                       rounded-xl
-                       border
-                       border-green-200
-                       bg-green-50
-                       px-4
-                       py-3
-                       text-sm
-                       text-green-700">
-
+            <div class="mb-6 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
                 {{ session('success') }}
-
             </div>
         @endif
 
 
         @if (session('error'))
-            <div
-                class="mb-6
-                       rounded-xl
-                       border
-                       border-red-200
-                       bg-red-50
-                       px-4
-                       py-3
-                       text-sm
-                       text-red-700">
-
+            <div class="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                 {{ session('error') }}
-
             </div>
         @endif
-
 
 
         {{-- =========================================================
             INFORMASI UTAMA
         ========================================================== --}}
 
-        <div
-            class="bg-white
-                   border
-                   border-slate-200
-                   rounded-2xl
-                   p-7
-                   mb-6">
+        <div class="bg-white border border-slate-200 rounded-2xl p-7 mb-6">
 
-            <div
-                class="flex flex-col
-                       md:flex-row
-                       md:items-center
-                       gap-6">
-
+            <div class="flex flex-col md:flex-row md:items-center gap-6">
 
                 {{-- FOTO --}}
 
@@ -140,23 +90,11 @@
 
                     @if ($anggota->foto)
                         <img src="{{ asset('storage/' . $anggota->foto) }}" alt="{{ $anggota->nama_lengkap }}"
-                            class="w-28 h-28
-                                   rounded-full
-                                   object-cover
-                                   border
-                                   border-slate-200">
+                            class="w-28 h-28 rounded-full object-cover border border-slate-200">
                     @else
-                        <div
-                            class="w-28 h-28
-                                   rounded-full
-                                   bg-slate-100
-                                   flex
-                                   items-center
-                                   justify-center">
+                        <div class="w-28 h-28 rounded-full bg-slate-100 flex items-center justify-center">
 
-                            <i data-lucide="user"
-                                class="w-12 h-12
-                                       text-slate-400"></i>
+                            <i data-lucide="user" class="w-12 h-12 text-slate-400"></i>
 
                         </div>
                     @endif
@@ -164,50 +102,51 @@
                 </div>
 
 
-
                 {{-- IDENTITAS --}}
 
                 <div class="flex-1">
 
-                    <div
-                        class="flex flex-wrap
-                               items-center
-                               gap-2
-                               mb-2">
+                    <div class="flex flex-wrap items-center gap-2 mb-2">
 
-                        <h2
-                            class="text-2xl
-                                   font-bold
-                                   text-slate-900">
+                        <h2 class="text-2xl font-bold text-slate-900">
                             {{ $anggota->nama_lengkap }}
                         </h2>
 
 
+                        {{-- STATUS HIDUP --}}
+
                         @if ($anggota->status === 'meninggal')
                             <span
-                                class="inline-flex
-                                       items-center
-                                       rounded-full
-                                       bg-slate-100
-                                       px-3
-                                       py-1
-                                       text-xs
-                                       font-medium
-                                       text-slate-600">
+                                class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
                                 Meninggal
                             </span>
                         @else
                             <span
-                                class="inline-flex
-                                       items-center
-                                       rounded-full
-                                       bg-green-50
-                                       px-3
-                                       py-1
-                                       text-xs
-                                       font-medium
-                                       text-green-700">
+                                class="inline-flex items-center rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700">
                                 Hidup
+                            </span>
+                        @endif
+
+
+                        {{-- STATUS DATA --}}
+
+                        @if ($anggota->status_data === 'aktif')
+                            <span
+                                class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
+
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+
+                                Aktif
+
+                            </span>
+                        @else
+                            <span
+                                class="inline-flex items-center gap-1 rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-700">
+
+                                <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+
+                                Tidak Aktif
+
                             </span>
                         @endif
 
@@ -221,19 +160,10 @@
                     @endif
 
 
-                    <div class="flex flex-wrap
-                               gap-2">
+                    <div class="flex flex-wrap gap-2">
 
                         <span
-                            class="inline-flex
-                                   items-center
-                                   gap-1.5
-                                   rounded-lg
-                                   bg-slate-100
-                                   px-3
-                                   py-1.5
-                                   text-xs
-                                   text-slate-600">
+                            class="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 px-3 py-1.5 text-xs text-slate-600">
 
                             <i data-lucide="users" class="w-3.5 h-3.5"></i>
 
@@ -243,15 +173,7 @@
 
 
                         <span
-                            class="inline-flex
-                                   items-center
-                                   gap-1.5
-                                   rounded-lg
-                                   bg-slate-100
-                                   px-3
-                                   py-1.5
-                                   text-xs
-                                   text-slate-600">
+                            class="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 px-3 py-1.5 text-xs text-slate-600">
 
                             <i data-lucide="user" class="w-3.5 h-3.5"></i>
 
@@ -268,18 +190,11 @@
         </div>
 
 
-
         {{-- =========================================================
             INFORMASI PRIBADI
         ========================================================== --}}
 
-        <div
-            class="bg-white
-                   border
-                   border-slate-200
-                   rounded-2xl
-                   p-7
-                   mb-6">
+        <div class="bg-white border border-slate-200 rounded-2xl p-7 mb-6">
 
             <div class="mb-6">
 
@@ -294,14 +209,7 @@
             </div>
 
 
-            <div
-                class="grid
-                       grid-cols-1
-                       sm:grid-cols-2
-                       lg:grid-cols-3
-                       gap-6">
-
-                {{-- Nama Lengkap --}}
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
 
                 <div>
 
@@ -316,8 +224,6 @@
                 </div>
 
 
-                {{-- Nama Panggilan --}}
-
                 <div>
 
                     <p class="text-xs text-slate-400 mb-1">
@@ -330,8 +236,6 @@
 
                 </div>
 
-
-                {{-- Jenis Kelamin --}}
 
                 <div>
 
@@ -346,8 +250,6 @@
                 </div>
 
 
-                {{-- Tempat Lahir --}}
-
                 <div>
 
                     <p class="text-xs text-slate-400 mb-1">
@@ -360,8 +262,6 @@
 
                 </div>
 
-
-                {{-- Tanggal Lahir --}}
 
                 <div>
 
@@ -382,8 +282,6 @@
                 </div>
 
 
-                {{-- Golongan Darah --}}
-
                 <div>
 
                     <p class="text-xs text-slate-400 mb-1">
@@ -396,8 +294,6 @@
 
                 </div>
 
-
-                {{-- Generasi --}}
 
                 <div>
 
@@ -412,12 +308,10 @@
                 </div>
 
 
-                {{-- Status --}}
-
                 <div>
 
                     <p class="text-xs text-slate-400 mb-1">
-                        Status
+                        Status Kehidupan
                     </p>
 
                     <p class="font-medium text-slate-900">
@@ -426,33 +320,40 @@
 
                 </div>
 
+
+                <div>
+
+                    <p class="text-xs text-slate-400 mb-1">
+                        Status Data
+                    </p>
+
+                    @if ($anggota->status_data === 'aktif')
+                        <p class="font-medium text-emerald-600">
+                            Aktif
+                        </p>
+                    @else
+                        <p class="font-medium text-red-600">
+                            Tidak Aktif
+                        </p>
+                    @endif
+
+                </div>
+
             </div>
 
         </div>
-
 
 
         {{-- =========================================================
             HUBUNGAN KELUARGA
         ========================================================== --}}
 
-        <div
-            class="bg-white
-                   border
-                   border-slate-200
-                   rounded-2xl
-                   p-7
-                   mb-6">
+        <div class="bg-white border border-slate-200 rounded-2xl p-7 mb-6">
 
-            <div
-                class="flex flex-col
-            sm:flex-row
-            sm:items-center
-            sm:justify-between
-            gap-4
-            mb-6">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
 
                 <div>
+
                     <h2 class="text-lg font-bold text-slate-900">
                         Hubungan Keluarga
                     </h2>
@@ -460,48 +361,29 @@
                     <p class="text-sm text-slate-500 mt-1">
                         Hubungan anggota dalam silsilah keluarga.
                     </p>
+
                 </div>
+
 
                 <div class="flex flex-wrap items-center gap-2">
 
-                    {{-- Tambah Hubungan Orang Tua / Anak --}}
                     <a href="{{ route('relasi.create', $anggota->id) }}"
-                        class="inline-flex
-                   items-center
-                   justify-center
-                   gap-2
-                   rounded-xl
-                   bg-blue-600
-                   px-4
-                   py-2.5
-                   text-sm
-                   font-semibold
-                   text-white
-                   transition
-                   hover:bg-blue-700">
+                        class="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700">
+
                         <i data-lucide="plus" class="h-4 w-4"></i>
 
                         Tambah Hubungan
+
                     </a>
 
-                    {{-- Tambah Pasangan --}}
+
                     <a href="{{ route('pasangan.create', $anggota->id) }}"
-                        class="inline-flex
-                   items-center
-                   justify-center
-                   gap-2
-                   rounded-xl
-                   bg-rose-600
-                   px-4
-                   py-2.5
-                   text-sm
-                   font-semibold
-                   text-white
-                   transition
-                   hover:bg-rose-700">
+                        class="inline-flex items-center justify-center gap-2 rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-700">
+
                         <i data-lucide="heart" class="h-4 w-4"></i>
 
                         Tambah Pasangan
+
                     </a>
 
                 </div>
@@ -509,13 +391,7 @@
             </div>
 
 
-
-            <div
-                class="grid
-                       grid-cols-1
-                       lg:grid-cols-2
-                       gap-8">
-
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
                 {{-- =================================================
                     ORANG TUA
@@ -523,18 +399,13 @@
 
                 <div>
 
-                    <div
-                        class="flex
-                               items-center
-                               justify-between
-                               mb-4">
+                    <div class="flex items-center justify-between mb-4">
 
                         <h3 class="font-semibold">
                             Orang Tua
                         </h3>
 
-                        <span class="text-xs
-                                   text-slate-400">
+                        <span class="text-xs text-slate-400">
                             {{ $anggota->orangTua->count() }}
                             data
                         </span>
@@ -545,43 +416,20 @@
                     @forelse($anggota->orangTua
                         as $orangTua)
                         <div
-                            class="flex
-                                   items-center
-                                   gap-3
-                                   p-3
-                                   rounded-xl
-                                   border
-                                   border-slate-200
-                                   mb-2
-                                   hover:bg-slate-50">
+                            class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 mb-2 hover:bg-slate-50">
 
                             <a href="{{ route('anggota.show', $orangTua->id) }}"
-                                class="flex
-                                       items-center
-                                       gap-3
-                                       flex-1
-                                       min-w-0">
+                                class="flex items-center gap-3 flex-1 min-w-0">
 
                                 @if ($orangTua->foto)
                                     <img src="{{ asset('storage/' . $orangTua->foto) }}"
                                         alt="{{ $orangTua->nama_lengkap }}"
-                                        class="w-10 h-10
-                                               rounded-full
-                                               object-cover
-                                               shrink-0">
+                                        class="w-10 h-10 rounded-full object-cover shrink-0">
                                 @else
                                     <div
-                                        class="w-10 h-10
-                                               rounded-full
-                                               bg-slate-100
-                                               flex
-                                               items-center
-                                               justify-center
-                                               shrink-0">
+                                        class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
 
-                                        <i data-lucide="user"
-                                            class="w-5 h-5
-                                                   text-slate-400"></i>
+                                        <i data-lucide="user" class="w-5 h-5 text-slate-400"></i>
 
                                     </div>
                                 @endif
@@ -589,14 +437,18 @@
 
                                 <div class="min-w-0">
 
-                                    <p class="font-medium
-                                               truncate">
+                                    <p class="font-medium truncate">
                                         {{ $orangTua->nama_lengkap }}
                                     </p>
 
-                                    <p class="text-xs
-                                               text-slate-500">
+                                    <p class="text-xs text-slate-500">
+
                                         {{ ucfirst($orangTua->pivot->jenis_hubungan) }}
+
+                                        @if ($orangTua->status_data === 'tidak_aktif')
+                                            · Tidak aktif
+                                        @endif
+
                                     </p>
 
                                 </div>
@@ -605,19 +457,13 @@
 
 
                             <form method="POST" action="{{ route('relasi.destroy', $orangTua->pivot->id) }}"
-                                onsubmit="return confirm(
-                                    'Hapus hubungan keluarga ini?'
-                                )">
+                                onsubmit="return confirm('Hapus hubungan keluarga ini?')">
 
                                 @csrf
 
                                 @method('DELETE')
 
-                                <button type="submit"
-                                    class="p-2
-                                           text-red-500
-                                           hover:bg-red-50
-                                           rounded-lg"
+                                <button type="submit" class="p-2 text-red-500 hover:bg-red-50 rounded-lg"
                                     title="Hapus hubungan">
 
                                     <i data-lucide="trash-2" class="w-4 h-4"></i>
@@ -630,22 +476,11 @@
 
                     @empty
 
-                        <div
-                            class="rounded-xl
-                                   border
-                                   border-dashed
-                                   border-slate-300
-                                   p-6
-                                   text-center">
+                        <div class="rounded-xl border border-dashed border-slate-300 p-6 text-center">
 
-                            <i data-lucide="users"
-                                class="w-7 h-7
-                                       text-slate-300
-                                       mx-auto
-                                       mb-2"></i>
+                            <i data-lucide="users" class="w-7 h-7 text-slate-300 mx-auto mb-2"></i>
 
-                            <p class="text-sm
-                                       text-slate-400">
+                            <p class="text-sm text-slate-400">
                                 Belum ada data orang tua.
                             </p>
 
@@ -655,25 +490,19 @@
                 </div>
 
 
-
                 {{-- =================================================
                     ANAK
                 ================================================== --}}
 
                 <div>
 
-                    <div
-                        class="flex
-                               items-center
-                               justify-between
-                               mb-4">
+                    <div class="flex items-center justify-between mb-4">
 
                         <h3 class="font-semibold">
                             Anak
                         </h3>
 
-                        <span class="text-xs
-                                   text-slate-400">
+                        <span class="text-xs text-slate-400">
                             {{ $anggota->anak->count() }}
                             data
                         </span>
@@ -684,42 +513,19 @@
                     @forelse($anggota->anak
                         as $anak)
                         <div
-                            class="flex
-                                   items-center
-                                   gap-3
-                                   p-3
-                                   rounded-xl
-                                   border
-                                   border-slate-200
-                                   mb-2
-                                   hover:bg-slate-50">
+                            class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 mb-2 hover:bg-slate-50">
 
                             <a href="{{ route('anggota.show', $anak->id) }}"
-                                class="flex
-                                       items-center
-                                       gap-3
-                                       flex-1
-                                       min-w-0">
+                                class="flex items-center gap-3 flex-1 min-w-0">
 
                                 @if ($anak->foto)
                                     <img src="{{ asset('storage/' . $anak->foto) }}" alt="{{ $anak->nama_lengkap }}"
-                                        class="w-10 h-10
-                                               rounded-full
-                                               object-cover
-                                               shrink-0">
+                                        class="w-10 h-10 rounded-full object-cover shrink-0">
                                 @else
                                     <div
-                                        class="w-10 h-10
-                                               rounded-full
-                                               bg-slate-100
-                                               flex
-                                               items-center
-                                               justify-center
-                                               shrink-0">
+                                        class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
 
-                                        <i data-lucide="user"
-                                            class="w-5 h-5
-                                                   text-slate-400"></i>
+                                        <i data-lucide="user" class="w-5 h-5 text-slate-400"></i>
 
                                     </div>
                                 @endif
@@ -727,14 +533,18 @@
 
                                 <div class="min-w-0">
 
-                                    <p class="font-medium
-                                               truncate">
+                                    <p class="font-medium truncate">
                                         {{ $anak->nama_lengkap }}
                                     </p>
 
-                                    <p class="text-xs
-                                               text-slate-500">
+                                    <p class="text-xs text-slate-500">
+
                                         Anak
+
+                                        @if ($anak->status_data === 'tidak_aktif')
+                                            · Tidak aktif
+                                        @endif
+
                                     </p>
 
                                 </div>
@@ -743,19 +553,13 @@
 
 
                             <form method="POST" action="{{ route('relasi.destroy', $anak->pivot->id) }}"
-                                onsubmit="return confirm(
-                                    'Hapus hubungan keluarga ini?'
-                                )">
+                                onsubmit="return confirm('Hapus hubungan keluarga ini?')">
 
                                 @csrf
 
                                 @method('DELETE')
 
-                                <button type="submit"
-                                    class="p-2
-                                           text-red-500
-                                           hover:bg-red-50
-                                           rounded-lg"
+                                <button type="submit" class="p-2 text-red-500 hover:bg-red-50 rounded-lg"
                                     title="Hapus hubungan">
 
                                     <i data-lucide="trash-2" class="w-4 h-4"></i>
@@ -768,22 +572,11 @@
 
                     @empty
 
-                        <div
-                            class="rounded-xl
-                                   border
-                                   border-dashed
-                                   border-slate-300
-                                   p-6
-                                   text-center">
+                        <div class="rounded-xl border border-dashed border-slate-300 p-6 text-center">
 
-                            <i data-lucide="users"
-                                class="w-7 h-7
-                                       text-slate-300
-                                       mx-auto
-                                       mb-2"></i>
+                            <i data-lucide="users" class="w-7 h-7 text-slate-300 mx-auto mb-2"></i>
 
-                            <p class="text-sm
-                                       text-slate-400">
+                            <p class="text-sm text-slate-400">
                                 Belum ada data anak.
                             </p>
 
@@ -795,16 +588,11 @@
             </div>
 
 
-
             {{-- =====================================================
                 PASANGAN
             ====================================================== --}}
 
-            <div
-                class="mt-8
-                       pt-8
-                       border-t
-                       border-slate-200">
+            <div class="mt-8 pt-8 border-t border-slate-200">
 
                 <div class="mb-4">
 
@@ -834,40 +622,17 @@
 
                 @if ($pasangan)
 
-                    <div
-                        class="flex
-                               items-center
-                               gap-3
-                               p-3
-                               rounded-xl
-                               border
-                               border-slate-200
-                               hover:bg-slate-50">
+                    <div class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 hover:bg-slate-50">
 
-                        <a href="{{ route('anggota.show', $pasangan->id) }}"
-                            class="flex
-                                   items-center
-                                   gap-3
-                                   flex-1">
+                        <a href="{{ route('anggota.show', $pasangan->id) }}" class="flex items-center gap-3 flex-1">
 
                             @if ($pasangan->foto)
                                 <img src="{{ asset('storage/' . $pasangan->foto) }}"
-                                    alt="{{ $pasangan->nama_lengkap }}"
-                                    class="w-12 h-12
-                                           rounded-full
-                                           object-cover">
+                                    alt="{{ $pasangan->nama_lengkap }}" class="w-12 h-12 rounded-full object-cover">
                             @else
-                                <div
-                                    class="w-12 h-12
-                                           rounded-full
-                                           bg-slate-100
-                                           flex
-                                           items-center
-                                           justify-center">
+                                <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
 
-                                    <i data-lucide="user"
-                                        class="w-5 h-5
-                                               text-slate-400"></i>
+                                    <i data-lucide="user" class="w-5 h-5 text-slate-400"></i>
 
                                 </div>
                             @endif
@@ -880,7 +645,13 @@
                                 </p>
 
                                 <p class="text-xs text-slate-500">
+
                                     Pasangan
+
+                                    @if ($pasangan->status_data === 'tidak_aktif')
+                                        · Tidak aktif
+                                    @endif
+
                                 </p>
 
                             </div>
@@ -889,22 +660,11 @@
 
                     </div>
                 @else
-                    <div
-                        class="rounded-xl
-                               border
-                               border-dashed
-                               border-slate-300
-                               p-6
-                               text-center">
+                    <div class="rounded-xl border border-dashed border-slate-300 p-6 text-center">
 
-                        <i data-lucide="heart"
-                            class="w-7 h-7
-                                   text-slate-300
-                                   mx-auto
-                                   mb-2"></i>
+                        <i data-lucide="heart" class="w-7 h-7 text-slate-300 mx-auto mb-2"></i>
 
-                        <p class="text-sm
-                                   text-slate-400">
+                        <p class="text-sm text-slate-400">
                             Belum ada data pasangan.
                         </p>
 
@@ -917,27 +677,14 @@
         </div>
 
 
-
         {{-- =========================================================
             FOOTER ACTION
         ========================================================== --}}
 
-        <div class="flex
-                   justify-between
-                   items-center
-                   gap-3">
+        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 pb-6">
 
             <a href="{{ route('anggota.index') }}"
-                class="inline-flex
-                       items-center
-                       gap-2
-                       border
-                       border-slate-300
-                       rounded-xl
-                       px-5
-                       py-2.5
-                       font-medium
-                       hover:bg-slate-50">
+                class="inline-flex items-center gap-2 border border-slate-300 rounded-xl px-5 py-2.5 font-medium hover:bg-slate-50">
 
                 <i data-lucide="arrow-left" class="w-4 h-4"></i>
 
@@ -946,33 +693,47 @@
             </a>
 
 
-            <form method="POST" action="{{ route('anggota.destroy', $anggota->id) }}"
-                onsubmit="return confirm(
-                    'Apakah Anda yakin ingin menonaktifkan anggota ini?'
-                )">
+            <div class="flex items-center gap-3">
 
-                @csrf
+                @if ($anggota->status_data === 'aktif')
+                    <form method="POST" action="{{ route('anggota.destroy', $anggota->id) }}"
+                        onsubmit="return confirm('Apakah Anda yakin ingin menonaktifkan anggota ini?')">
 
-                @method('DELETE')
+                        @csrf
 
-                <button type="submit"
-                    class="inline-flex
-                           items-center
-                           gap-2
-                           text-red-600
-                           hover:bg-red-50
-                           rounded-xl
-                           px-4
-                           py-2.5
-                           font-medium">
+                        @method('DELETE')
 
-                    <i data-lucide="user-x" class="w-4 h-4"></i>
+                        <button type="submit"
+                            class="inline-flex items-center gap-2 text-red-600 hover:bg-red-50 rounded-xl px-4 py-2.5 font-medium">
 
-                    Nonaktifkan Anggota
+                            <i data-lucide="user-x" class="w-4 h-4"></i>
 
-                </button>
+                            Nonaktifkan Anggota
 
-            </form>
+                        </button>
+
+                    </form>
+                @else
+                    <form method="POST" action="{{ route('anggota.aktifkan', $anggota->id) }}"
+                        onsubmit="return confirm('Apakah Anda yakin ingin mengaktifkan kembali anggota ini?')">
+
+                        @csrf
+
+                        @method('PATCH')
+
+                        <button type="submit"
+                            class="inline-flex items-center gap-2 text-emerald-600 hover:bg-emerald-50 rounded-xl px-4 py-2.5 font-medium">
+
+                            <i data-lucide="user-check" class="w-4 h-4"></i>
+
+                            Aktifkan Kembali
+
+                        </button>
+
+                    </form>
+                @endif
+
+            </div>
 
         </div>
 
