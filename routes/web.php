@@ -6,6 +6,7 @@ use App\Http\Controllers\PohonSilsilahController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RelasiOrangTuaAnakController;
 use App\Http\Controllers\RelasiPasanganController;
+use App\Http\Controllers\SejarahKeluargaController;
 use App\Http\Controllers\UndanganKeluargaController;
 use App\Models\AnggotaKeluarga;
 use Illuminate\Support\Facades\Route;
@@ -66,6 +67,12 @@ Route::middleware('auth')->group(function () {
         '/keluarga/{keluarga}/pilih',
         [KeluargaController::class, 'pilihAktif']
     )->name('keluarga.aktif');
+
+
+    Route::delete(
+        '/keluarga/{keluarga}',
+        [KeluargaController::class, 'destroy']
+    )->name('keluarga.destroy');
 
 
     /*
@@ -165,6 +172,12 @@ Route::middleware('auth')->group(function () {
         )->name('pohon.index');
 
 
+        Route::get(
+            '/sejarah-keluarga',
+            [SejarahKeluargaController::class, 'index']
+        )->name('sejarah.index');
+
+
         /*
         |--------------------------------------------------------------------------
         | Anggota - Read
@@ -223,6 +236,12 @@ Route::middleware('auth')->group(function () {
             )->name('anggota.destroy');
 
 
+            Route::delete(
+                '/anggota-keluarga/{id}/hapus-permanen',
+                [AnggotaKeluargaController::class, 'hapusPermanen']
+            )->name('anggota.hapus-permanen');
+
+
             /*
             |--------------------------------------------------------------------------
             | Relasi Orang Tua Anak
@@ -269,6 +288,36 @@ Route::middleware('auth')->group(function () {
                 '/relasi-pasangan/{id}',
                 [RelasiPasanganController::class, 'destroy']
             )->name('pasangan.destroy');
+
+
+            Route::get(
+                '/sejarah-keluarga/tambah',
+                [SejarahKeluargaController::class, 'create']
+            )->name('sejarah.create');
+
+
+            Route::post(
+                '/sejarah-keluarga',
+                [SejarahKeluargaController::class, 'store']
+            )->name('sejarah.store');
+
+
+            Route::get(
+                '/sejarah-keluarga/{id}/edit',
+                [SejarahKeluargaController::class, 'edit']
+            )->name('sejarah.edit');
+
+
+            Route::put(
+                '/sejarah-keluarga/{id}',
+                [SejarahKeluargaController::class, 'update']
+            )->name('sejarah.update');
+
+
+            Route::delete(
+                '/sejarah-keluarga/{id}',
+                [SejarahKeluargaController::class, 'destroy']
+            )->name('sejarah.destroy');
 
 
             /*

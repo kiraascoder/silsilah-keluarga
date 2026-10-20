@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\AnggotaKeluarga;
 use App\Models\Keluarga;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class AnggotaKeluargaController extends Controller
@@ -191,6 +192,11 @@ class AnggotaKeluargaController extends Controller
                 'nullable',
                 'string',
                 'max:100',
+            ],
+
+            'deskripsi' => [
+                'nullable',
+                'string',
             ],
 
             'tempat_lahir' => [
@@ -411,6 +417,11 @@ class AnggotaKeluargaController extends Controller
                 'max:100',
             ],
 
+            'deskripsi' => [
+                'nullable',
+                'string',
+            ],
+
             'tempat_lahir' => [
                 'nullable',
                 'string',
@@ -502,6 +513,53 @@ class AnggotaKeluargaController extends Controller
                 'success',
                 'Data anggota berhasil diperbarui.'
             );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Hapus Permanen
+    |--------------------------------------------------------------------------
+    */
+
+    public function hapusPermanen($id)
+    {
+        $keluargaId = session('keluarga_id');
+
+        $anggota = AnggotaKeluarga::query()
+            ->where('keluarga_id', $keluargaId)
+            ->where('id', $id)
+            ->firstOrFail();
+
+        $keluarga = Keluarga::findOrFail($keluargaId);
+
+        if ((int) $keluarga->kepala_keluarga_id === (int) $anggota->id) {
+            return back()->with(
+                'error',
+                'Kepala keluarga tidak dapat dihapus sebelum kepala keluarga baru ditentukan.'
+            );
+        }
+
+        $foto = $anggota->foto;
+        $fileDokumen = DB::table('dokumen_anggota')
+            ->where('anggota_keluarga_id', $anggota->id)
+            ->whereNotNull('file_path')
+            ->pluck('file_path')
+            ->all();
+
+        $anggota->delete();
+
+        $paths = array_filter(array_merge([$foto], $fileDokumen));
+
+        foreach ($paths as $path) {
+            if (Storage::disk('public')->exists($path)) {
+                Storage::disk('public')->delete($path);
+            }
+        }
+
+        return redirect()
+            ->route('anggota.index')
+            ->with('success', 'Data anggota berhasil dihapus secara permanen.');
     }
 
 

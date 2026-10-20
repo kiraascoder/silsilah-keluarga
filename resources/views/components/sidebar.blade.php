@@ -145,6 +145,21 @@
             </a>
 
 
+            {{-- Sejarah Keluarga --}}
+            <a href="{{ route('sejarah.index') }}"
+                class="mb-1 flex items-center gap-3 rounded-xl px-3 py-3 text-sm transition
+                    {{ request()->routeIs('sejarah.*')
+                        ? 'bg-blue-50 font-semibold text-blue-600'
+                        : 'text-slate-600 hover:bg-slate-50' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 shrink-0" aria-hidden="true">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                </svg>
+                <span>Sejarah Keluarga</span>
+            </a>
+
+
             {{-- Anggota Keluarga --}}
             <a href="{{ route('anggota.index') }}"
                 class="mb-1 flex items-center gap-3 rounded-xl px-3 py-3 text-sm transition

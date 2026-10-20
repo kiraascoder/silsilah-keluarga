@@ -17,6 +17,7 @@ class AnggotaKeluarga extends Model
         'keluarga_id',
         'nama_lengkap',
         'nama_panggilan',
+        'deskripsi',
         'tempat_lahir',
         'tanggal_lahir',
         'jenis_kelamin',

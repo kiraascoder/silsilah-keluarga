@@ -46,6 +46,14 @@ class Keluarga extends Model
         );
     }
 
+    public function sejarah()
+    {
+        return $this->hasMany(
+            SejarahKeluarga::class,
+            'keluarga_id'
+        );
+    }
+
     public function kepalaKeluarga()
     {
         return $this->belongsTo(

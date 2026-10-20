@@ -159,6 +159,12 @@
                         </p>
                     @endif
 
+                    @if ($anggota->deskripsi)
+                        <div class="mt-3 max-w-3xl rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm leading-6 text-blue-900 whitespace-pre-line">
+                            {{ $anggota->deskripsi }}
+                        </div>
+                    @endif
+
 
                     <div class="flex flex-wrap gap-2">
 
@@ -608,68 +614,95 @@
 
 
                 @php
-
-                    $pasangan = null;
-
-                    if ($anggota->relasiPasanganPertama->isNotEmpty()) {
-                        $pasangan = $anggota->relasiPasanganPertama->first()->anggotaKedua;
-                    } elseif ($anggota->relasiPasanganKedua->isNotEmpty()) {
-                        $pasangan = $anggota->relasiPasanganKedua->first()->anggotaPertama;
-                    }
-
+                    $semuaRelasiPasangan = $anggota->relasiPasanganPertama
+                        ->map(function ($relasi) {
+                            return [
+                                'relasi' => $relasi,
+                                'pasangan' => $relasi->anggotaKedua,
+                            ];
+                        })
+                        ->merge(
+                            $anggota->relasiPasanganKedua->map(function ($relasi) {
+                                return [
+                                    'relasi' => $relasi,
+                                    'pasangan' => $relasi->anggotaPertama,
+                                ];
+                            })
+                        )
+                        ->filter(fn ($item) => $item['pasangan'])
+                        ->sortBy(function ($item) {
+                            return [
+                                $item['relasi']->tanggal_mulai?->timestamp ?? PHP_INT_MAX,
+                                $item['pasangan']->nama_lengkap,
+                            ];
+                        })
+                        ->values();
                 @endphp
 
+                @if ($semuaRelasiPasangan->isNotEmpty())
+                    <div class="space-y-3">
+                        @foreach ($semuaRelasiPasangan as $item)
+                            @php
+                                $relasi = $item['relasi'];
+                                $pasangan = $item['pasangan'];
+                            @endphp
 
-                @if ($pasangan)
+                            <div class="rounded-xl border border-slate-200 p-4 hover:bg-slate-50 transition">
+                                <div class="flex items-start gap-3">
+                                    <a href="{{ route('anggota.show', $pasangan->id) }}" class="flex items-start gap-3 flex-1 min-w-0">
+                                        @if ($pasangan->foto)
+                                            <img src="{{ asset('storage/' . $pasangan->foto) }}" alt="{{ $pasangan->nama_lengkap }}" class="w-12 h-12 rounded-full object-cover shrink-0">
+                                        @else
+                                            <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
+                                                <i data-lucide="user" class="w-5 h-5 text-slate-400"></i>
+                                            </div>
+                                        @endif
 
-                    <div class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 hover:bg-slate-50">
+                                        <div class="min-w-0">
+                                            <div class="flex flex-wrap items-center gap-2">
+                                                <p class="font-semibold text-slate-900">{{ $pasangan->nama_lengkap }}</p>
+                                                <span class="inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold {{ $relasi->status_hubungan === 'mantan' ? 'bg-slate-100 text-slate-600' : 'bg-emerald-50 text-emerald-700' }}">
+                                                    {{ $relasi->status_hubungan === 'mantan' ? 'Mantan Pasangan' : 'Suami / Istri' }}
+                                                </span>
+                                            </div>
 
-                        <a href="{{ route('anggota.show', $pasangan->id) }}" class="flex items-center gap-3 flex-1">
+                                            <p class="text-xs text-slate-500 mt-1">Generasi {{ $pasangan->generasi ?? '-' }}</p>
 
-                            @if ($pasangan->foto)
-                                <img src="{{ asset('storage/' . $pasangan->foto) }}"
-                                    alt="{{ $pasangan->nama_lengkap }}" class="w-12 h-12 rounded-full object-cover">
-                            @else
-                                <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
+                                            @if ($pasangan->deskripsi)
+                                                <p class="text-sm text-slate-600 mt-2 leading-6 whitespace-pre-line">{{ $pasangan->deskripsi }}</p>
+                                            @endif
 
-                                    <i data-lucide="user" class="w-5 h-5 text-slate-400"></i>
+                                            @if ($relasi->tanggal_mulai || $relasi->tanggal_berakhir)
+                                                <p class="text-xs text-slate-400 mt-2">
+                                                    {{ $relasi->tanggal_mulai?->format('d/m/Y') ?? '-' }}
+                                                    @if ($relasi->tanggal_berakhir)
+                                                        — {{ $relasi->tanggal_berakhir->format('d/m/Y') }}
+                                                    @endif
+                                                </p>
+                                            @endif
 
+                                            @if ($relasi->catatan)
+                                                <p class="text-xs text-slate-500 mt-2 whitespace-pre-line">{{ $relasi->catatan }}</p>
+                                            @endif
+                                        </div>
+                                    </a>
+
+                                    <form method="POST" action="{{ route('pasangan.destroy', $relasi->id) }}" onsubmit="return confirm('Hapus hubungan pasangan ini?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="p-2 text-red-500 hover:bg-red-50 rounded-lg" title="Hapus hubungan pasangan">
+                                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                        </button>
+                                    </form>
                                 </div>
-                            @endif
-
-
-                            <div>
-
-                                <p class="font-medium">
-                                    {{ $pasangan->nama_lengkap }}
-                                </p>
-
-                                <p class="text-xs text-slate-500">
-
-                                    Pasangan
-
-                                    @if ($pasangan->status_data === 'tidak_aktif')
-                                        · Tidak aktif
-                                    @endif
-
-                                </p>
-
                             </div>
-
-                        </a>
-
+                        @endforeach
                     </div>
                 @else
                     <div class="rounded-xl border border-dashed border-slate-300 p-6 text-center">
-
                         <i data-lucide="heart" class="w-7 h-7 text-slate-300 mx-auto mb-2"></i>
-
-                        <p class="text-sm text-slate-400">
-                            Belum ada data pasangan.
-                        </p>
-
+                        <p class="text-sm text-slate-400">Belum ada data pasangan.</p>
                     </div>
-
                 @endif
 
             </div>
@@ -732,6 +765,17 @@
 
                     </form>
                 @endif
+
+                <form method="POST" action="{{ route('anggota.hapus-permanen', $anggota->id) }}"
+                    onsubmit="return confirm('PERINGATAN: Data anggota, seluruh relasi orang tua/anak, relasi pasangan, dan dokumen terkait akan dihapus permanen. Lanjutkan?')">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit"
+                        class="inline-flex items-center gap-2 text-red-700 border border-red-200 hover:bg-red-50 rounded-xl px-4 py-2.5 font-medium">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        Hapus Permanen
+                    </button>
+                </form>
 
             </div>
 

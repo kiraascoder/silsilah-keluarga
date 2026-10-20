@@ -45,100 +45,101 @@ class PohonSilsilahController extends Controller
                 ->first();
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Map semua anggota
-        |--------------------------------------------------------------------------
-        */
-
         $anggotaMap = $anggota->keyBy('id');
 
-        /*
-        |--------------------------------------------------------------------------
-        | Bentuk data pasangan
-        |--------------------------------------------------------------------------
-        */
-
-        $pasanganMap = [];
-
-        foreach ($anggota as $item) {
-            $pasangan = null;
-
-            $relasiPertama = $item
-                ->relasiPasanganPertama
-                ->first();
-
-            if ($relasiPertama) {
-                $pasangan = $relasiPertama->anggotaKedua;
-            }
-
-            if (!$pasangan) {
-                $relasiKedua = $item
-                    ->relasiPasanganKedua
-                    ->first();
-
-                if ($relasiKedua) {
-                    $pasangan = $relasiKedua->anggotaPertama;
-                }
-            }
-
-            if ($pasangan) {
-                $pasanganMap[$item->id] = $pasangan->id;
-                $pasanganMap[$pasangan->id] = $item->id;
-            }
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Bentuk data pohon
-        |--------------------------------------------------------------------------
-        */
-
-        $dataPohon = $anggota->map(function ($item) use (
-            $pasanganMap,
-            $anggotaMap
-        ) {
-            /*
-            |--------------------------------------------------------------------------
-            | Pasangan
-            |--------------------------------------------------------------------------
-            */
-
-            $pasangan = null;
-
-            if (isset($pasanganMap[$item->id])) {
-                $pasangan = $anggotaMap->get(
-                    $pasanganMap[$item->id]
-                );
-            }
+        $dataPohon = $anggota->map(function ($item) use ($anggotaMap) {
 
             /*
-            |--------------------------------------------------------------------------
-            | Anak
-            |--------------------------------------------------------------------------
-            */
+             * ============================================================
+             * RELASI PASANGAN
+             * ============================================================
+             *
+             * Gunakan collect() agar hasil map() berupa array dapat
+             * digabungkan tanpa diproses sebagai Eloquent Model.
+             *
+             * Sebelumnya menggunakan:
+             *
+             * $item->relasiPasanganPertama->map(...)->merge(...)
+             *
+             * Eloquent Collection menganggap item hasil map() sebagai
+             * model dan mencoba memanggil getKey(), sehingga muncul:
+             *
+             * Call to a member function getKey() on array
+             *
+             * Dengan collect()->concat(), data pasangan diperlakukan
+             * sebagai Support Collection biasa.
+             */
 
-            $anakIds = collect();
+            $relasiPasangan = collect()
+                ->concat(
+                    $item->relasiPasanganPertama->map(function ($relasi) {
+                        return [
+                            'relasi_id' => $relasi->id,
+                            'id' => $relasi->anggotaKedua?->id,
+                            'status_hubungan' => $relasi->status_hubungan,
+                            'tanggal_mulai' => $relasi->tanggal_mulai?->format('Y-m-d'),
+                            'tanggal_berakhir' => $relasi->tanggal_berakhir?->format('Y-m-d'),
+                            'catatan' => $relasi->catatan,
+                        ];
+                    })
+                )
+                ->concat(
+                    $item->relasiPasanganKedua->map(function ($relasi) {
+                        return [
+                            'relasi_id' => $relasi->id,
+                            'id' => $relasi->anggotaPertama?->id,
+                            'status_hubungan' => $relasi->status_hubungan,
+                            'tanggal_mulai' => $relasi->tanggal_mulai?->format('Y-m-d'),
+                            'tanggal_berakhir' => $relasi->tanggal_berakhir?->format('Y-m-d'),
+                            'catatan' => $relasi->catatan,
+                        ];
+                    })
+                )
+                ->filter(function ($relasi) {
+                    return !empty($relasi['id']);
+                })
+                ->unique('id')
+                ->sortBy(function ($relasi) use ($anggotaMap) {
+                    $pasangan = $anggotaMap->get($relasi['id']);
 
-            foreach ($item->anak as $anak) {
-                $anakIds->push($anak->id);
-            }
+                    return [
+                        $pasangan?->generasi ?? 999,
+                        $pasangan?->nama_lengkap ?? '',
+                    ];
+                })
+                ->values();
 
             /*
-            |--------------------------------------------------------------------------
-            | Jika memiliki pasangan,
-            | gabungkan anak pasangan juga.
-            |--------------------------------------------------------------------------
-            */
+             * ============================================================
+             * ANAK
+             * ============================================================
+             *
+             * Anak dari anggota utama dan anak dari seluruh pasangan
+             * digabung agar anak dari pasangan kedua/ketiga tetap muncul.
+             */
 
-            if ($pasangan) {
-                foreach ($pasangan->anak as $anak) {
-                    $anakIds->push($anak->id);
+            $pasanganIds = $relasiPasangan
+                ->pluck('id')
+                ->values();
+
+            $anakIds = $item->anak
+                ->pluck('id');
+
+            foreach ($pasanganIds as $pasanganId) {
+                $pasangan = $anggotaMap->get($pasanganId);
+
+                if ($pasangan) {
+                    $anakIds = $anakIds->merge(
+                        $pasangan->anak->pluck('id')
+                    );
                 }
             }
 
             $anakIds = $anakIds
                 ->unique()
+                ->filter(function ($id) use ($anggotaMap) {
+                    return $anggotaMap->has($id);
+                })
                 ->sortBy(function ($id) use ($anggotaMap) {
                     $anak = $anggotaMap->get($id);
 
@@ -150,10 +151,10 @@ class PohonSilsilahController extends Controller
                 ->values();
 
             /*
-            |--------------------------------------------------------------------------
-            | Orang tua
-            |--------------------------------------------------------------------------
-            */
+             * ============================================================
+             * ORANG TUA
+             * ============================================================
+             */
 
             $orangTua = $item->orangTua
                 ->map(function ($orang) {
@@ -166,31 +167,40 @@ class PohonSilsilahController extends Controller
                 ->values();
 
             /*
-            |--------------------------------------------------------------------------
-            | Data pasangan
-            |--------------------------------------------------------------------------
-            */
+             * ============================================================
+             * DATA PASANGAN
+             * ============================================================
+             *
+             * Semua pasangan dikirim ke frontend.
+             */
 
-            $dataPasangan = null;
+            $pasanganData = $relasiPasangan
+                ->map(function ($relasi) use ($anggotaMap) {
+                    $pasangan = $anggotaMap->get($relasi['id']);
 
-            if ($pasangan) {
-                $dataPasangan = [
-                    'id' => $pasangan->id,
-                    'nama' => $pasangan->nama_lengkap,
-                    'panggilan' => $pasangan->nama_panggilan,
-                    'jenis_kelamin' => $pasangan->jenis_kelamin,
-                    'generasi' => $pasangan->generasi,
-                    'foto' => $pasangan->foto
-                        ? asset('storage/' . $pasangan->foto)
-                        : null,
-                ];
-            }
+                    return [
+                        'id' => $pasangan?->id,
+                        'nama' => $pasangan?->nama_lengkap,
+                        'panggilan' => $pasangan?->nama_panggilan,
+                        'deskripsi' => $pasangan?->deskripsi,
+                        'jenis_kelamin' => $pasangan?->jenis_kelamin,
+                        'generasi' => $pasangan?->generasi,
+                        'foto' => $pasangan?->foto
+                            ? asset('storage/' . $pasangan->foto)
+                            : null,
+                        'status_hubungan' => $relasi['status_hubungan'],
+                        'tanggal_mulai' => $relasi['tanggal_mulai'],
+                        'tanggal_berakhir' => $relasi['tanggal_berakhir'],
+                        'catatan' => $relasi['catatan'],
+                    ];
+                })
+                ->values();
 
             /*
-            |--------------------------------------------------------------------------
-            | Return
-            |--------------------------------------------------------------------------
-            */
+             * ============================================================
+             * DATA ANGGOTA
+             * ============================================================
+             */
 
             return [
                 'id' => $item->id,
@@ -198,6 +208,8 @@ class PohonSilsilahController extends Controller
                 'nama' => $item->nama_lengkap,
 
                 'panggilan' => $item->nama_panggilan,
+
+                'deskripsi' => $item->deskripsi,
 
                 'jenis_kelamin' => $item->jenis_kelamin,
 
@@ -211,11 +223,15 @@ class PohonSilsilahController extends Controller
 
                 'orang_tua' => $orangTua,
 
+                'orang_tua_ids' => $orangTua
+                    ->pluck('id')
+                    ->values(),
+
                 'anak_ids' => $anakIds,
 
-                'pasangan_id' => $pasangan?->id,
+                'pasangan_ids' => $pasanganIds,
 
-                'pasangan' => $dataPasangan,
+                'pasangan' => $pasanganData,
             ];
         })->values();
 

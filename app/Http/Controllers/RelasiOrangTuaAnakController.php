@@ -105,6 +105,19 @@ class RelasiOrangTuaAnakController extends Controller
             $anakId = $validated['anggota_id'];
         }
 
+        if ($this->menyebabkanSiklus(
+            $orangTuaId,
+            $anakId,
+            $keluargaId
+        )) {
+            return back()
+                ->withInput()
+                ->with(
+                    'error',
+                    'Hubungan tersebut akan membentuk siklus dalam silsilah keluarga.'
+                );
+        }
+
         RelasiOrangTuaAnak::create([
             'orang_tua_id' => $orangTuaId,
             'anak_id' => $anakId,

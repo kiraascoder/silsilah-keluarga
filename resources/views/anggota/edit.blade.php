@@ -271,6 +271,29 @@
 
 
 
+                    {{-- Deskripsi --}}
+
+                    <div class="md:col-span-2">
+
+                        <label for="deskripsi" class="block text-sm font-medium mb-2">
+                            Deskripsi Identitas
+                        </label>
+
+                        <textarea id="deskripsi" name="deskripsi" rows="4"
+                            placeholder="Tambahkan keterangan singkat mengenai anggota ini."
+                            class="w-full border border-slate-300 rounded-xl px-4 py-3">{{ old('deskripsi', $anggota->deskripsi) }}</textarea>
+
+                        <p class="text-xs text-slate-400 mt-2">
+                            Deskripsi ini juga dapat ditampilkan pada informasi pasangan di silsilah.
+                        </p>
+
+                        @error('deskripsi')
+                            <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                        @enderror
+
+                    </div>
+
+
                     {{-- Jenis Kelamin --}}
 
                     <div>
