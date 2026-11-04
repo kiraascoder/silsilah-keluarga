@@ -14,6 +14,7 @@ class SejarahKeluarga extends Model
     protected $fillable = [
         'keluarga_id',
         'judul',
+        'foto',
         'tanggal',
         'deskripsi',
         'dibuat_oleh',

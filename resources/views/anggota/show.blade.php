@@ -159,11 +159,6 @@
                         </p>
                     @endif
 
-                    @if ($anggota->deskripsi)
-                        <div class="mt-3 max-w-3xl rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm leading-6 text-blue-900 whitespace-pre-line">
-                            {{ $anggota->deskripsi }}
-                        </div>
-                    @endif
 
 
                     <div class="flex flex-wrap gap-2">
@@ -614,22 +609,31 @@
 
 
                 @php
-                    $semuaRelasiPasangan = $anggota->relasiPasanganPertama
+                    $relasiPertama = $anggota->relasiPasanganPertama
                         ->map(function ($relasi) {
                             return [
                                 'relasi' => $relasi,
                                 'pasangan' => $relasi->anggotaKedua,
                             ];
                         })
-                        ->merge(
-                            $anggota->relasiPasanganKedua->map(function ($relasi) {
-                                return [
-                                    'relasi' => $relasi,
-                                    'pasangan' => $relasi->anggotaPertama,
-                                ];
-                            })
-                        )
-                        ->filter(fn ($item) => $item['pasangan'])
+                        ->values()
+                        ->all();
+
+                    $relasiKedua = $anggota->relasiPasanganKedua
+                        ->map(function ($relasi) {
+                            return [
+                                'relasi' => $relasi,
+                                'pasangan' => $relasi->anggotaPertama,
+                            ];
+                        })
+                        ->values()
+                        ->all();
+
+                    $semuaRelasiPasangan = collect($relasiPertama)
+                        ->merge($relasiKedua)
+                        ->filter(function ($item) {
+                            return $item['pasangan'] !== null;
+                        })
                         ->sortBy(function ($item) {
                             return [
                                 $item['relasi']->tanggal_mulai?->timestamp ?? PHP_INT_MAX,
@@ -649,27 +653,35 @@
 
                             <div class="rounded-xl border border-slate-200 p-4 hover:bg-slate-50 transition">
                                 <div class="flex items-start gap-3">
-                                    <a href="{{ route('anggota.show', $pasangan->id) }}" class="flex items-start gap-3 flex-1 min-w-0">
+                                    <a href="{{ route('anggota.show', $pasangan->id) }}"
+                                        class="flex items-start gap-3 flex-1 min-w-0">
                                         @if ($pasangan->foto)
-                                            <img src="{{ asset('storage/' . $pasangan->foto) }}" alt="{{ $pasangan->nama_lengkap }}" class="w-12 h-12 rounded-full object-cover shrink-0">
+                                            <img src="{{ asset('storage/' . $pasangan->foto) }}"
+                                                alt="{{ $pasangan->nama_lengkap }}"
+                                                class="w-12 h-12 rounded-full object-cover shrink-0">
                                         @else
-                                            <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
+                                            <div
+                                                class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
                                                 <i data-lucide="user" class="w-5 h-5 text-slate-400"></i>
                                             </div>
                                         @endif
 
                                         <div class="min-w-0">
                                             <div class="flex flex-wrap items-center gap-2">
-                                                <p class="font-semibold text-slate-900">{{ $pasangan->nama_lengkap }}</p>
-                                                <span class="inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold {{ $relasi->status_hubungan === 'mantan' ? 'bg-slate-100 text-slate-600' : 'bg-emerald-50 text-emerald-700' }}">
+                                                <p class="font-semibold text-slate-900">{{ $pasangan->nama_lengkap }}
+                                                </p>
+                                                <span
+                                                    class="inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold {{ $relasi->status_hubungan === 'mantan' ? 'bg-slate-100 text-slate-600' : 'bg-emerald-50 text-emerald-700' }}">
                                                     {{ $relasi->status_hubungan === 'mantan' ? 'Mantan Pasangan' : 'Suami / Istri' }}
                                                 </span>
                                             </div>
 
-                                            <p class="text-xs text-slate-500 mt-1">Generasi {{ $pasangan->generasi ?? '-' }}</p>
+                                            <p class="text-xs text-slate-500 mt-1">Generasi
+                                                {{ $pasangan->generasi ?? '-' }}</p>
 
                                             @if ($pasangan->deskripsi)
-                                                <p class="text-sm text-slate-600 mt-2 leading-6 whitespace-pre-line">{{ $pasangan->deskripsi }}</p>
+                                                <p class="text-sm text-slate-600 mt-2 leading-6 whitespace-pre-line">
+                                                    {{ $pasangan->deskripsi }}</p>
                                             @endif
 
                                             @if ($relasi->tanggal_mulai || $relasi->tanggal_berakhir)
@@ -682,15 +694,18 @@
                                             @endif
 
                                             @if ($relasi->catatan)
-                                                <p class="text-xs text-slate-500 mt-2 whitespace-pre-line">{{ $relasi->catatan }}</p>
+                                                <p class="text-xs text-slate-500 mt-2 whitespace-pre-line">
+                                                    {{ $relasi->catatan }}</p>
                                             @endif
                                         </div>
                                     </a>
 
-                                    <form method="POST" action="{{ route('pasangan.destroy', $relasi->id) }}" onsubmit="return confirm('Hapus hubungan pasangan ini?')">
+                                    <form method="POST" action="{{ route('pasangan.destroy', $relasi->id) }}"
+                                        onsubmit="return confirm('Hapus hubungan pasangan ini?')">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="p-2 text-red-500 hover:bg-red-50 rounded-lg" title="Hapus hubungan pasangan">
+                                        <button type="submit" class="p-2 text-red-500 hover:bg-red-50 rounded-lg"
+                                            title="Hapus hubungan pasangan">
                                             <i data-lucide="trash-2" class="w-4 h-4"></i>
                                         </button>
                                     </form>
