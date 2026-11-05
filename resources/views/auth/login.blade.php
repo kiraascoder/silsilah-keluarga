@@ -269,18 +269,58 @@
 
     </section>
 
-
-    {{-- =========================================================
-        LUCIDE
-    ========================================================== --}}
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function() {
 
-            if (typeof lucide !== 'undefined') {
-                lucide.createIcons();
-            }
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
 
-        });
-    </script>
+        const passwordInput = document.getElementById('password');
+        const togglePassword = document.getElementById('togglePassword');
+
+        if (passwordInput && togglePassword) {
+
+            togglePassword.addEventListener('click', function() {
+
+                const isPassword =
+                    passwordInput.type === 'password';
+
+                passwordInput.type =
+                    isPassword ? 'text' : 'password';
+
+                togglePassword.setAttribute(
+                    'aria-label',
+                    isPassword
+                        ? 'Sembunyikan kata sandi'
+                        : 'Tampilkan kata sandi'
+                );
+
+                const iconName =
+                    isPassword ? 'eye-off' : 'eye';
+
+                const icon = document.getElementById('passwordEye');
+
+                if (icon) {
+                    icon.setAttribute(
+                        'data-lucide',
+                        iconName
+                    );
+
+                    icon.outerHTML =
+                        `<i id="passwordEye"
+                            data-lucide="${iconName}"
+                            class="w-5 h-5"></i>`;
+
+                    lucide.createIcons();
+                }
+
+            });
+
+        }
+
+    });
+</script>
+
 
 @endsection
