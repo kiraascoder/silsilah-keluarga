@@ -120,10 +120,9 @@
 
                     </div>
 
-
-                    {{-- Password --}}
+                               {{-- Password --}}
                     <div>
-
+                    
                         <label for="password"
                             class="block mb-2
                                    text-sm
@@ -131,27 +130,56 @@
                                    text-slate-700">
                             Kata Sandi
                         </label>
-
-
-                        <input id="password" type="password" name="password" required autocomplete="current-password"
-                            class="w-full
-                                   border border-slate-300
-                                   rounded-xl
-                                   px-4 py-3
-                                   outline-none
-                                   transition
-                                   focus:border-blue-500
-                                   focus:ring-2
-                                   focus:ring-blue-100"
-                            placeholder="Masukkan kata sandi">
-
-
+                    
+                        <div class="relative">
+                    
+                            <input
+                                id="password"
+                                type="password"
+                                name="password"
+                                required
+                                autocomplete="current-password"
+                                class="w-full
+                                       border border-slate-300
+                                       rounded-xl
+                                       px-4 py-3
+                                       pr-12
+                                       outline-none
+                                       transition
+                                       focus:border-blue-500
+                                       focus:ring-2
+                                       focus:ring-blue-100"
+                                placeholder="Masukkan kata sandi"
+                            >
+                    
+                            {{-- Tombol tampil/sembunyikan password --}}
+                            <button
+                                type="button"
+                                id="togglePassword"
+                                class="absolute
+                                       right-3
+                                       top-1/2
+                                       -translate-y-1/2
+                                       text-slate-400
+                                       hover:text-slate-600
+                                       transition"
+                                aria-label="Tampilkan kata sandi"
+                            >
+                                <i
+                                    id="passwordEye"
+                                    data-lucide="eye"
+                                    class="w-5 h-5">
+                                </i>
+                            </button>
+                    
+                        </div>
+                    
                         @error('password')
                             <p class="text-red-500 text-sm mt-1">
                                 {{ $message }}
                             </p>
                         @enderror
-
+                    
                     </div>
 
 
